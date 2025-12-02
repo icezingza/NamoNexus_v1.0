@@ -4,9 +4,10 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 
+from app.core.logging_middleware import LoggingMiddleware, setup_logging
 from app.personality.namo_persona_core import NamoPersonaCore
 from app.safety.guard import check_safe
 from app.safety.risk_evaluator import RiskEvaluator
@@ -17,9 +18,15 @@ class ReflectionRequest(BaseModel):
 
 
 def create_app() -> FastAPI:
+    setup_logging()
     app = FastAPI(title="NaMo Nexus", version="1.0")
     persona = NamoPersonaCore()
     risk = RiskEvaluator()
+    logging_middleware = LoggingMiddleware(app)
+
+    @app.middleware("http")
+    async def log_requests(request: Request, call_next):
+        return await logging_middleware.dispatch(request, call_next)
 
     @app.get("/")
     def root() -> dict[str, str]:
