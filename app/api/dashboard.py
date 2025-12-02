@@ -34,3 +34,9 @@ def create_dashboard() -> Dash | None:
         return f"{metrics}"
 
     return app
+
+
+if __name__ == "__main__":
+    dashboard_app = create_dashboard()
+    if dashboard_app:
+        dashboard_app.run_server(host="0.0.0.0", port=8050)
