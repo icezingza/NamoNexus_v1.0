@@ -87,6 +87,36 @@
     }
   },
   {
+    "timestamp": "2025-12-02T16:15:34.389800",
+    "reflection": {
+      "input": "I feel calm and open today.",
+      "reflection": {
+        "tone": "compassionate",
+        "moral_index": 0.525,
+        "reflection": "With a compassionate spirit (coherence=0.3), I hear: I feel calm and open today.",
+        "coherence": 0.3
+      },
+      "emotion": {
+        "stimuli": {
+          "joy": 0.1,
+          "sadness": 0.0,
+          "anger": 0.0,
+          "calm": 0.0,
+          "compassion": 0.05
+        },
+        "coherence": 0.3,
+        "state": {
+          "joy": 0.5,
+          "sadness": 0.1,
+          "anger": 0.05,
+          "calm": 0.6,
+          "compassion": 0.75
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2025-12-02T16:18:49.278957",
     "timestamp": "2025-12-02T16:14:41.222471",
     "reflection": {
       "input": "I feel calm and open today.",
