@@ -3,11 +3,11 @@ echo "🚀 Initiating NaMoNexus Genesis Execution Protocol..."
 
 # Step 1. Environment Validation
 echo "🔍 Validating Python environment..."
-python3 --version
-if [ $? -ne 0 ]; then
-  echo "❌ Python3 not found. Please install Python 3.12+ first."
+if ! python3 -c 'import sys; assert sys.version_info >= (3, 12)' 2>/dev/null; then
+  echo "❌ Python 3.12+ is required. Please install a compatible version."
   exit 1
 fi
+python3 --version
 
 # Step 2. Dependency installation
 echo "📦 Installing dependencies..."
