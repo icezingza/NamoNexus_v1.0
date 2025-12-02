@@ -49,6 +49,18 @@ h1 {
   transform: scale(0.98);
 }
 
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  background: rgba(12, 22, 44, 0.8);
+  border: 1px solid #1e2a44;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+  color: #cfe9ff;
+}
+
 .orb--neutral {
   background: radial-gradient(circle at 35% 35%, #d7e3ff, #1d2742 70%);
   box-shadow: 0 0 22px rgba(215, 227, 255, 0.35), 0 0 48px rgba(215, 227, 255, 0.16);

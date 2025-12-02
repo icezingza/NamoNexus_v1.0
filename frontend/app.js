@@ -2,6 +2,8 @@ const chatWindow = document.getElementById('chat-window');
 const input = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const orb = document.getElementById('orb');
+const riskStatus = document.getElementById('status-risk');
+const coherenceStatus = document.getElementById('status-coherence');
 
 function appendMessage(text, role) {
   const div = document.createElement('div');
@@ -9,6 +11,20 @@ function appendMessage(text, role) {
   div.textContent = text;
   chatWindow.appendChild(div);
   chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function updateStatus(data) {
+  const riskLevel = data?.risk_level || 'N/A';
+  const coherenceValue =
+    typeof data?.coherence === 'number' ? data.coherence.toFixed(2) : 'N/A';
+
+  if (riskStatus) {
+    riskStatus.textContent = `Risk: ${riskLevel}`;
+  }
+
+  if (coherenceStatus) {
+    coherenceStatus.textContent = `Coherence: ${coherenceValue}`;
+  }
 }
 
 async function sendMessage() {
@@ -27,6 +43,8 @@ async function sendMessage() {
     });
 
     const data = await res.json();
+
+    updateStatus(data);
 
     if (!res.ok) {
       console.error('NaMo response error', data);
