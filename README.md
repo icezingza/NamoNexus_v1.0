@@ -3,6 +3,7 @@
 NaMoNexus v1.0 is a dhammic, emotion-aware AI system that pairs an adaptive supervisor chain with the NaMo persona pipeline. It blends emotional analysis, dhammic reflection, and memory persistence while applying a safety layer and risk evaluation. The Dharma Console frontend lets you interact with NaMo visually and conversationally.
 
 ## Quick Start
+Python **3.11** is required for development, CI, and container builds.
 1. Create and activate a virtual environment.
 2. Install dependencies:
    ```bash
