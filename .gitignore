@@ -1,9 +1,12 @@
+# Python artifacts
 __pycache__/
 *.py[cod]
-*.log
-.data
-.env
-*.sqlite
-*.db
-logs/
-data/
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+
+# OS-specific files
+.DS_Store
