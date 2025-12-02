@@ -74,6 +74,16 @@ async function sendMessage() {
   } catch (err) {
     console.error('Network or parsing error', err);
     appendMessage('NaMo is temporarily unavailable. Please try again soon.', 'namo');
+    const data = await res.json();
+    if (!res.ok) {
+      appendMessage(`Blocked: ${JSON.stringify(data.detail || data)}`, 'namo');
+    } else {
+      const reflection = data.result?.reflection?.reflection || '...';
+      const tone = data.result?.reflection?.tone || 'neutral';
+      appendMessage(`${tone.toUpperCase()}: ${reflection}`, 'namo');
+    }
+  } catch (err) {
+    appendMessage('Error contacting NaMo Nexus.', 'namo');
   } finally {
     orb.classList.remove('recalibrating');
   }
