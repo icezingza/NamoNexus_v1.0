@@ -50,3 +50,20 @@ Run the test suite with pytest:
 ```bash
 pytest
 ```
+
+## Docker & CI/CD Smoke Checks
+Use these commands to validate the container image and deployment workflow locally:
+
+```bash
+# Build container
+docker build -t namonexus:latest .
+
+# Run locally
+docker run -p 8000:8000 namonexus:latest
+
+# Check health endpoint
+curl http://localhost:8000/health
+
+# Trigger the GitHub Actions deploy workflow (requires gh CLI configured)
+gh workflow run deploy.yml
+```
