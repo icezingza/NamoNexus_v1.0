@@ -7,13 +7,9 @@ __pycache__/
 # Virtual environments
 venv/
 .env/
-
 # OS-specific files
 .DS_Store
-
 # Logs
 logs/
-
 # Data
-data/memory_log.json
 data/memory_log.json
