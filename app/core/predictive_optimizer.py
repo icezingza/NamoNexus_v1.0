@@ -24,7 +24,3 @@ class PredictiveOptimizer:
             return 0.0
         baseline = mean(values)
         return round(baseline, 4)
-
-    def reset(self) -> None:
-        """Reset internal history."""
-        self.history.clear()
