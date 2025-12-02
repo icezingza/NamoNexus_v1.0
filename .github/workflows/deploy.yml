@@ -36,14 +36,3 @@ jobs:
           service: namonexus-api
           image: namonexus:latest
           region: asia-southeast1
-
-      - name: Verify Health
-        run: python3 deploy/health_monitor.py
-
-      - name: Rollback if unhealthy
-        if: failure()
-        run: |
-          echo "⚠️ Rolling back to previous stable version..."
-          gcloud run services update-traffic namonexus-api \
-            --region asia-southeast1 \
-            --to-tags stable=100

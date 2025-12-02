@@ -9,6 +9,10 @@ from app.emotion.analyzer import EmotionAnalyzer
 from app.memory.retrieval_engine import RetrievalEngine
 from app.memory.store import MemoryStore
 from app.personality.dhammic_reflection_engine import DhammicReflectionEngine
+from app.emotion.analyzer import EmotionAnalyzer
+from app.memory.store import MemoryStore
+from app.personality.dhammic_reflection_engine import DhammicReflectionEngine
+from app.memory.retrieval_engine import RetrievalEngine
 
 
 @dataclass
