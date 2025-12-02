@@ -39,12 +39,28 @@ def create_app() -> FastAPI:
 
     @app.post("/reflect")
     def reflect(request: ReflectionRequest) -> dict[str, Any]:
-        safety = check_safe(request.text)
+        if not request.text or not str(request.text).strip():
+            raise HTTPException(status_code=400, detail={"message": "Text is required"})
+
+        text = str(request.text).strip()
+        safety = check_safe(text)
         risk_score = risk.score(safety["flagged"])
-        if not safety["safe"]:
-            raise HTTPException(status_code=400, detail={"message": "Content blocked", "risk": risk_score})
-        result = persona.process(request.text)
-        return {"result": result, "risk": risk_score}
+
+        if risk_score["category"] == "high":
+            return {
+                "message": "The request was refused for safety reasons.",
+                "risk_score": risk_score["score"],
+                "risk_level": risk_score["category"],
+                "flagged_terms": safety["flagged"],
+            }
+
+        result = persona.process(text)
+        return {
+            **result,
+            "risk_score": risk_score["score"],
+            "risk_level": risk_score["category"],
+            "flagged_terms": safety["flagged"],
+        }
 
     @app.post("/namo/dialogue")
     def dialogue(request: ReflectionRequest) -> dict[str, Any]:
