@@ -1,11 +1,11 @@
 """Supervisor chain orchestrating core adaptive loop."""
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from .logging_middleware import LoggingMiddleware
 from .meta_learning_engine import MetaLearningEngine
 from .predictive_optimizer import PredictiveOptimizer
 from .symbolic_planner import plan
@@ -13,7 +13,7 @@ from .symbolic_planner import plan
 
 @dataclass
 class SupervisorChainV7:
-    logger: LoggingMiddleware = field(default_factory=LoggingMiddleware)
+    logger: logging.Logger = field(default_factory=lambda: logging.getLogger("SupervisorChainV7"))
     meta_engine: MetaLearningEngine = field(default_factory=MetaLearningEngine)
     optimizer: PredictiveOptimizer = field(default_factory=PredictiveOptimizer)
     cycle_count: int = 0
@@ -26,11 +26,11 @@ class SupervisorChainV7:
         plan_text = plan(symbols)
         timestamp = time.time()
         self.logger.info(
-            "Cycle executed",
-            cycle=self.cycle_count,
-            adaptive_factor=adaptive_factor,
-            prediction=prediction,
-            plan=plan_text,
+            "Cycle executed: cycle=%s, adaptive_factor=%s, prediction=%s, plan=%s",
+            self.cycle_count,
+            adaptive_factor,
+            prediction,
+            plan_text,
         )
         return {
             "cycle": self.cycle_count,
