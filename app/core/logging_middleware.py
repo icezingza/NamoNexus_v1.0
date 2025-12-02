@@ -1,47 +1,66 @@
-"""Simple logging middleware for NaMoNexus.
-Logs messages to stdout and to a rotating file under ./logs/.
-"""
+"""FastAPI logging middleware for request tracing and metrics."""
 from __future__ import annotations
 
 import logging
+import time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any
+from typing import Awaitable, Callable
+from uuid import uuid4
+
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+
+from app.core.config import get_settings
 
 
-class LoggingMiddleware:
-    """Lightweight logger that writes to console and file."""
+def setup_logging() -> None:
+    """Configure root logging based on application settings."""
 
-    def __init__(self, name: str = "NaMoNexus", log_dir: str | Path = "logs", level: int = logging.INFO) -> None:
-        self.logger = logging.getLogger(name)
-        if not self.logger.handlers:
-            self._configure(log_dir, level)
+    settings = get_settings()
+    level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
+    logger = logging.getLogger()
 
-    def _configure(self, log_dir: str | Path, level: int) -> None:
-        log_path = Path(log_dir)
-        log_path.mkdir(parents=True, exist_ok=True)
-        file_handler = RotatingFileHandler(log_path / "namo.log", maxBytes=512_000, backupCount=3)
-        formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-        file_handler.setFormatter(formatter)
+    if logger.handlers:
+        logger.setLevel(level)
+        return
 
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(formatter)
+    logger.setLevel(level)
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
 
-        self.logger.setLevel(level)
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(stream_handler)
+    log_dir = Path("logs")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    file_handler = RotatingFileHandler(log_dir / "namo_requests.log", maxBytes=1_000_000, backupCount=3)
+    file_handler.setFormatter(formatter)
 
-    def log(self, level: int, message: str, **extra: Any) -> None:
-        self.logger.log(level, message, extra=extra if extra else None)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
 
-    def info(self, message: str, **extra: Any) -> None:
-        self.log(logging.INFO, message, **extra)
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
 
-    def warning(self, message: str, **extra: Any) -> None:
-        self.log(logging.WARNING, message, **extra)
 
-    def error(self, message: str, **extra: Any) -> None:
-        self.log(logging.ERROR, message, **extra)
+class LoggingMiddleware(BaseHTTPMiddleware):
+    """Middleware that logs HTTP method, path, status, and latency with a request ID."""
 
-    def debug(self, message: str, **extra: Any) -> None:
-        self.log(logging.DEBUG, message, **extra)
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        request_id = str(uuid4())
+        start_time = time.perf_counter()
+
+        response = await call_next(request)
+        elapsed_ms = (time.perf_counter() - start_time) * 1000
+
+        logging.getLogger(__name__).info(
+            "%s %s -> %s in %.2fms [req_id=%s]",
+            request.method,
+            request.url.path,
+            response.status_code,
+            elapsed_ms,
+            request_id,
+        )
+
+        response.headers["X-Request-ID"] = request_id
+        return response
