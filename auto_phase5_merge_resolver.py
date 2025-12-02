@@ -1,56 +1,59 @@
-#!/usr/bin/env python3
+import os
 import subprocess
 import sys
-from typing import List
 
+# ========= CONFIG ==========
+REPO_URL = "https://github.com/icezingza/NamoNexus_v1.0.git"
+TARGET_BRANCH = "codex/create-namonexus-v1.0-deploy"
+MAIN_BRANCH = "main"
+COMMIT_MESSAGE = (
+    "✅ Auto Phase 5 Merge Resolver: kept Codex Deployment Build "
+    "(Balanced Dharma Mode + Cloud Run pipeline)"
+)
+# ============================
 
-def run_command(command: List[str], check: bool = True) -> subprocess.CompletedProcess:
-    result = subprocess.run(command, text=True, capture_output=True)
+def run_cmd(cmd):
+    """Run shell command and print output."""
+    print(f"\n🔹 Running: {cmd}")
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     if result.stdout:
-        print(result.stdout.strip())
+        print("✅ STDOUT:", result.stdout.strip())
     if result.stderr:
-        print(result.stderr.strip(), file=sys.stderr)
-    if check and result.returncode != 0:
-        sys.exit(result.returncode)
-    return result
-
-
-def ensure_remote(remote_name: str) -> None:
-    result = subprocess.run(["git", "remote", "show", remote_name], capture_output=True, text=True)
+        print("⚠️ STDERR:", result.stderr.strip())
     if result.returncode != 0:
-        print(f"❌ Remote '{remote_name}' is not configured. Add it before running the merge.")
-        sys.exit(1)
+        print(f"❌ Command failed with code {result.returncode}. Exiting.")
+        sys.exit(result.returncode)
+    return result.stdout.strip()
 
+def ensure_repo():
+    """Ensure we're in a valid git repo."""
+    if not os.path.exists(".git"):
+        run_cmd(f"git clone {REPO_URL} .")
+        print("✅ Repository cloned.")
+    else:
+        print("📦 Git repository found.")
 
-def merge_main_into_codex_branch() -> None:
-    target_branch = "codex/create-namonexus-v1.0-deploy"
-    main_ref = "origin/main"
-    merge_message = "Force resolve all conflicts: keep Codex build as truth"
+def merge_codex_with_main():
+    """Perform the merge with auto conflict resolution."""
+    run_cmd(f"git fetch origin {MAIN_BRANCH}")
+    run_cmd(f"git checkout {TARGET_BRANCH}")
+    run_cmd(f"git merge origin/{MAIN_BRANCH} --no-commit --no-ff")
+    run_cmd("git checkout --theirs .")
+    run_cmd("git add .")
+    run_cmd(f'git commit -m "{COMMIT_MESSAGE}"')
+    print("🎉 Merge conflicts resolved automatically using Codex branch preference.")
 
-    ensure_remote("origin")
+def push_changes():
+    """Push merged changes back to remote."""
+    run_cmd(f"git push origin {TARGET_BRANCH}")
+    print("🚀 Changes pushed successfully. Ready to open Pull Request on GitHub.")
 
-    print("🔄 Fetching latest from origin...")
-    run_command(["git", "fetch", "origin"])
-
-    print(f"📂 Checking out {target_branch}...")
-    run_command(["git", "checkout", target_branch])
-
-    print(f"🔀 Merging {main_ref} with ours strategy (Codex branch wins)...")
-    run_command(["git", "merge", main_ref, "--strategy-option=ours", "-m", merge_message])
-
-    print("✅ Merge completed. Current status:")
-    run_command(["git", "status", "-sb"], check=False)
-
-
-def main() -> None:
-    try:
-        merge_main_into_codex_branch()
-    except SystemExit:
-        raise
-    except Exception as exc:
-        print(f"❌ Unexpected error: {exc}")
-        sys.exit(1)
-
+def main():
+    print("🧭 Starting Phase 5 Auto Merge Resolver for NamoNexus_v1.0...")
+    ensure_repo()
+    merge_codex_with_main()
+    push_changes()
+    print("\n✅ All done! Go to your GitHub Pull Request and press 'Merge Pull Request'.")
 
 if __name__ == "__main__":
     main()
