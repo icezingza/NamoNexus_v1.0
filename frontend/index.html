@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaMo Dharma Console</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <h1>NaMo Dharma Console</h1>
+    <div class="orb orb--neutral" id="dharma-orb"></div>
+    <div class="orb-proxy" id="orb" aria-hidden="true"></div>
+    <div class="status-bar">
+      <span id="status-risk">Risk: N/A</span>
+      <span id="status-risk-score">Score: N/A</span>
+      <span id="status-tone">Tone: N/A</span>
+      <span id="status-coherence">Coherence: N/A</span>
+    </div>
+    <div class="chat-window" id="chat-window"></div>
+    <div class="input-row">
+      <input type="text" id="chat-input" placeholder="Share your thoughts...">
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+  <script>
+    const dharmaOrb = document.getElementById('dharma-orb');
+    const orbProxy = document.getElementById('orb');
+
+    const orbToneClassMap = {
+      calm: 'orb--calm',
+      compassionate: 'orb--compassionate',
+      neutral: 'orb--neutral',
+      tense: 'orb--alert',
+      alert: 'orb--alert'
+    };
+
+    const resetOrbState = () => {
+      Object.values(orbToneClassMap).forEach((cls) => dharmaOrb.classList.remove(cls));
+      dharmaOrb.classList.remove('recalibrating');
+    };
+
+    const applyToneToOrb = (tone) => {
+      const normalized = (tone || '').toLowerCase().trim();
+      const toneClass = orbToneClassMap[normalized] || orbToneClassMap.neutral;
+      resetOrbState();
+      dharmaOrb.classList.add(toneClass);
+    };
+
+    const syncProxyState = () => {
+      if (!orbProxy) return;
+      if (orbProxy.classList.contains('recalibrating')) {
+        dharmaOrb.classList.add('recalibrating');
+      } else {
+        dharmaOrb.classList.remove('recalibrating');
+      }
+    };
+
+    if (orbProxy) {
+      const observer = new MutationObserver(syncProxyState);
+      observer.observe(orbProxy, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      try {
+        const requestInfo = args[0];
+        const url = typeof requestInfo === 'string' ? requestInfo : requestInfo.url;
+        if (url && url.includes('/reflect')) {
+          const clone = response.clone();
+          const data = await clone.json();
+          const tone = data?.tone;
+          const risk = (data?.risk_level || '').toLowerCase();
+          applyToneToOrb(risk === 'high' ? 'alert' : tone);
+        }
+      } catch (err) {
+        console.error('Failed to update orb tone from response', err);
+      }
+      return response;
+    };
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
