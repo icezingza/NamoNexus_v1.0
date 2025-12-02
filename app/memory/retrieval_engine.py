@@ -10,6 +10,9 @@ class RetrievalEngine:
         if not entries_list:
             return "No prior reflections recorded."
         recent = entries_list[-3:]
-        reflections = [entry.get("reflection", {}).get("reflection", "") for entry in recent]
+        reflections = [
+            entry.get("reflection", {}).get("reflection", {}).get("reflection", "")
+            for entry in recent
+        ]
         joined = " | ".join(filter(None, reflections))
         return f"Recent reflections: {joined}" if joined else "Reflections captured without content."
