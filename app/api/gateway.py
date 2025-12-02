@@ -5,11 +5,12 @@ import time
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from app.core.config import get_settings
 from app.core.logging_middleware import LoggingMiddleware, setup_logging
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 from app.personality.namo_persona_core import NamoPersonaCore
 from app.safety.guard import check_safe
@@ -77,18 +78,13 @@ def create_app() -> FastAPI:
     def dialogue(request: ReflectionRequest) -> dict[str, Any]:
         return reflect(request)
 
-    @app.exception_handler(Exception)
-    async def global_error_handler(request: Request, exc: Exception):
-        return JSONResponse(
-            status_code=500,
-            content={
-                "message": "Internal Dharma imbalance detected.",
-                "error": str(exc),
-                "resolution": "Supervisor will attempt recovery automatically."
-            },
-        )
-
     return app
 
 
 app = create_app()
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8080)
