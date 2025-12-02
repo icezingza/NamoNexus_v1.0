@@ -20,35 +20,10 @@ class NamoPersonaCore:
     def process(self, text: str) -> dict[str, Any]:
         emotion = self.emotion_analyzer.analyze(text)
         reflection = self.reflection_engine.reflect(text, emotion)
-        memory_entry = {
-            "input": text,
-            "reflection": reflection,
-            "emotion": emotion,
-        }
-        self.memory_store.save_reflection(memory_entry)
+        self.memory_store.save_reflection(reflection)
         memory = self.memory_store.recall()
-
         return {
-            "reflection_text": reflection.get("reflection", ""),
-            "tone": reflection.get("tone", "neutral"),
-            "moral_index": reflection.get("moral_index", 0.0),
-            "dhamma_tags": self._derive_tags(reflection, emotion),
+            "reflection": reflection,
+            "memory": memory,
             "coherence": emotion.get("coherence", 0.0),
-            "memory_summary": memory.get("summary", ""),
         }
-
-    def _derive_tags(self, reflection: dict[str, Any], emotion: dict[str, Any]) -> list[str]:
-        tags: list[str] = []
-        tone = reflection.get("tone")
-        if tone:
-            tags.append(tone)
-        coherence = emotion.get("coherence")
-        if isinstance(coherence, (int, float)):
-            if coherence > 0.75:
-                tags.append("balanced")
-            elif coherence < 0.35:
-                tags.append("recalibrating")
-        state = emotion.get("state", {}) if isinstance(emotion, dict) else {}
-        dominant = [key for key, value in state.items() if value > 0.4]
-        tags.extend(dominant)
-        return list(dict.fromkeys(tags))

@@ -2,8 +2,6 @@ const chatWindow = document.getElementById('chat-window');
 const input = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const orb = document.getElementById('orb');
-const riskStatus = document.getElementById('status-risk');
-const coherenceStatus = document.getElementById('status-coherence');
 
 function appendMessage(text, role) {
   const div = document.createElement('div');
@@ -13,54 +11,28 @@ function appendMessage(text, role) {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-function updateStatus(data) {
-  const riskLevel = data?.risk_level || 'N/A';
-  const coherenceValue =
-    typeof data?.coherence === 'number' ? data.coherence.toFixed(2) : 'N/A';
-
-  if (riskStatus) {
-    riskStatus.textContent = `Risk: ${riskLevel}`;
-  }
-
-  if (coherenceStatus) {
-    coherenceStatus.textContent = `Coherence: ${coherenceValue}`;
-  }
-}
-
 async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
-
   appendMessage(text, 'user');
   input.value = '';
   orb.classList.add('recalibrating');
-
   try {
     const res = await fetch('/reflect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
     });
-
     const data = await res.json();
-
-    updateStatus(data);
-
     if (!res.ok) {
-      console.error('NaMo response error', data);
-      appendMessage('NaMo could not process that request safely.', 'namo');
-      return;
+      appendMessage(`Blocked: ${JSON.stringify(data.detail || data)}`, 'namo');
+    } else {
+      const reflection = data.result?.reflection?.reflection || '...';
+      const tone = data.result?.reflection?.tone || 'neutral';
+      appendMessage(`${tone.toUpperCase()}: ${reflection}`, 'namo');
     }
-
-    const reflectionText = data.reflection_text || data.message || 'NaMo is reflecting...';
-    const tone = data.tone || 'neutral';
-    const moralValue = typeof data.moral_index === 'number' ? data.moral_index.toFixed(2) : 'N/A';
-    const namoReply = `${reflectionText}\nTone: ${tone} | Moral index: ${moralValue}`;
-
-    appendMessage(namoReply, 'namo');
   } catch (err) {
-    console.error('Network or parsing error', err);
-    appendMessage('NaMo is temporarily unavailable. Please try again soon.', 'namo');
+    appendMessage('Error contacting NaMo Nexus.', 'namo');
   } finally {
     orb.classList.remove('recalibrating');
   }
