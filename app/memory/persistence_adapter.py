@@ -9,13 +9,15 @@ from app.core.config import get_settings
 
 
 class PersistenceAdapter:
-    def __init__(self, path: str | Path | None = None, max_entries: int = 200) -> None:
+    def __init__(self, path: str | Path | None = None, max_entries: int | None = None) -> None:
         settings = get_settings()
         resolved_path = path or settings.MEMORY_PATH
+        resolved_max = max_entries or settings.MAX_MEMORY_ENTRIES
 
+        self.enabled = settings.FEATURE_FLAGS.get("ENABLE_MEMORY", True)
         self.path = Path(resolved_path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.max_entries = max_entries
+        self.max_entries = resolved_max
         if not self.path.exists():
             self._write([])
 
@@ -28,6 +30,8 @@ class PersistenceAdapter:
             json.dump(data, f, indent=2)
 
     def append(self, entry: dict[str, Any]) -> None:
+        if not self.enabled:
+            return
         entries = self._read()
         entries.append(entry)
         if len(entries) > self.max_entries:
@@ -35,4 +39,6 @@ class PersistenceAdapter:
         self._write(entries)
 
     def load(self) -> list[dict[str, Any]]:
+        if not self.enabled:
+            return []
         return self._read()

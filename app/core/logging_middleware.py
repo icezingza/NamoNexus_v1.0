@@ -19,6 +19,9 @@ def setup_logging() -> None:
     """Configure root logging based on application settings."""
 
     settings = get_settings()
+    if not settings.FEATURE_FLAGS.get("ENABLE_LOGGING", True):
+        return
+
     level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
     logger = logging.getLogger()
 
@@ -47,6 +50,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
+        settings = get_settings()
+        if not settings.FEATURE_FLAGS.get("ENABLE_LOGGING", True):
+            return await call_next(request)
+
         request_id = str(uuid4())
         start_time = time.perf_counter()
 
