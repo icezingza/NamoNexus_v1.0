@@ -9,6 +9,9 @@ from pydantic import BaseModel
 
 from app.core.config import get_settings
 from app.core.logging_middleware import LoggingMiddleware, setup_logging
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
 from app.personality.namo_persona_core import NamoPersonaCore
 from app.safety.guard import check_safe
 from app.safety.risk_evaluator import RiskEvaluator

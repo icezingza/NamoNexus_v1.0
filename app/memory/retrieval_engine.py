@@ -10,20 +10,9 @@ class RetrievalEngine:
         if not entries_list:
             return "No prior reflections recorded."
         recent = entries_list[-3:]
-        reflections: list[str] = []
-        for entry in recent:
-            reflection_field = entry.get("reflection", {})
-            text = ""
-            if isinstance(reflection_field, dict):
-                inner = reflection_field.get("reflection", "")
-                if isinstance(inner, dict):
-                    text = inner.get("reflection", "")
-                elif isinstance(inner, str):
-                    text = inner
-            elif isinstance(reflection_field, str):
-                text = reflection_field
-            if text:
-                reflections.append(text)
-
-        joined = " | ".join(reflections)
+        reflections = [
+            entry.get("reflection", {}).get("reflection", {}).get("reflection", "")
+            for entry in recent
+        ]
+        joined = " | ".join(filter(None, reflections))
         return f"Recent reflections: {joined}" if joined else "Reflections captured without content."
