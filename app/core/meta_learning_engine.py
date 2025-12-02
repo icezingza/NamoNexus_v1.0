@@ -18,3 +18,8 @@ class MetaLearningEngine:
         self.adaptive_factor = max(self.min_factor, min(self.max_factor, self.adaptive_factor + delta))
         self.history.append(self.adaptive_factor)
         return self.adaptive_factor
+
+    def reset(self) -> None:
+        """Reset internal state to defaults."""
+        self.adaptive_factor = 1.0
+        self.history.clear()
