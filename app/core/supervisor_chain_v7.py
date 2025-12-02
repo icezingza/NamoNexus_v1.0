@@ -1,6 +1,7 @@
 """Supervisor chain orchestrating core adaptive loop."""
 from __future__ import annotations
 
+import logging
 import time
 import logging
 from dataclasses import dataclass, field
@@ -43,65 +44,26 @@ class SupervisorChainV7:
         self.failure_count = 0
 
     def step(self, signal: float, symbols: str | list[str]) -> dict[str, Any]:
-        """Run a single supervisory cycle with self-healing and stability checks."""
-        try:
-            self.cycle_count += 1
-            adaptive_factor = self.meta_engine.adjust(signal)
-            prediction = self.optimizer.predict(signal * adaptive_factor)
-            plan_text = plan(symbols)
-
-            # Integrated stability check using RuntimeGovernor
-            # Derived metrics for the governor
-            metrics = {
-                "clarity": 0.5,  # Baseline clarity
-                "coherence": min(1.0, adaptive_factor / 2.0),
-                "stability": max(0.0, 1.0 - abs(prediction - signal)),
-                "growth_index": adaptive_factor
-            }
-            stability_score = self.governor.composite_score(metrics)
-
-            timestamp = time.time()
-            self.logger.info(
-                "Cycle executed",
-                cycle=self.cycle_count,
-                adaptive_factor=adaptive_factor,
-                prediction=prediction,
-                plan=plan_text,
-                stability=stability_score
-            )
-
-            # Reset failure count on success
-            self.failure_count = 0
-
-            return {
-                "cycle": self.cycle_count,
-                "adaptive_factor": adaptive_factor,
-                "prediction": prediction,
-                "plan": plan_text,
-                "timestamp": timestamp,
-                "stability_index": self.governor.energy_state,
-                "stability_score": stability_score,
-                "status": "nominal"
-            }
-
-        except Exception as e:
-            self.failure_count += 1
-            self.logger.error("Cycle failed", error=str(e), failure_count=self.failure_count)
-
-            if self.failure_count >= self.MAX_FAILURES:
-                self._heal()
-                return {
-                    "cycle": self.cycle_count,
-                    "error": str(e),
-                    "status": "healed",
-                    "message": "Self-healing triggered"
-                }
-
-            return {
-                "cycle": self.cycle_count,
-                "error": str(e),
-                "status": "degraded"
-            }
+        """Run a single supervisory cycle."""
+        self.cycle_count += 1
+        adaptive_factor = self.meta_engine.adjust(signal)
+        prediction = self.optimizer.predict(signal * adaptive_factor)
+        plan_text = plan(symbols)
+        timestamp = time.time()
+        self.logger.info(
+            "Cycle executed: cycle=%s, adaptive_factor=%s, prediction=%s, plan=%s",
+            self.cycle_count,
+            adaptive_factor,
+            prediction,
+            plan_text,
+        )
+        return {
+            "cycle": self.cycle_count,
+            "adaptive_factor": adaptive_factor,
+            "prediction": prediction,
+            "plan": plan_text,
+            "timestamp": timestamp,
+        }
 
     def run_loop(self, signals: list[float], symbols: str | list[str], delay: float = 0.0) -> list[dict[str, Any]]:
         """Run through a batch of signals."""

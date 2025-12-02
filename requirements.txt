@@ -5,3 +5,4 @@ psutil==5.9.8
 dash==2.15.0
 pytest==9.0.1
 httpx==0.28.1
+requests
