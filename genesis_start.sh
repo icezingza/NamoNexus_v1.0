@@ -61,6 +61,7 @@ if pgrep -f "uvicorn app.api.gateway:app" > /dev/null; then
     echo "✅ API Gateway running on port 8080"
 else
     echo "❌ API Gateway failed to start. Check logs_gateway.txt"
+    exit 1
 fi
 
 # === 8. RUN DASHBOARD VISUALIZATION ===
@@ -73,6 +74,7 @@ if [ -f "app/api/dashboard.py" ]; then
         echo "✅ Dashboard active on port 8050"
     else
         echo "❌ Dashboard failed to start. Check logs_dashboard.txt"
+        exit 1
     fi
 else
     echo "⚠️ Dashboard file not found."
