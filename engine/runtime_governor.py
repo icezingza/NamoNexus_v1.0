@@ -22,3 +22,8 @@ class RuntimeGovernor:
 
     def snapshot(self) -> dict[str, Any]:
         return {"energy_state": self.energy_state, "history": self.history[-5:]}
+
+    def reset(self) -> None:
+        """Reset internal state."""
+        self.energy_state = 1.0
+        self.history.clear()
