@@ -26,19 +26,47 @@ h1 {
   letter-spacing: 1px;
 }
 
-.orb {
+.orb,
+.orb-proxy {
   width: 140px;
   height: 140px;
   margin: 0 auto 16px;
   border-radius: 50%;
+  transition: box-shadow 0.3s ease, transform 0.3s ease, background 0.3s ease;
+}
+
+.orb {
   background: radial-gradient(circle at 30% 30%, #6ddcff, #1a2a4f 70%);
-  box-shadow: 0 0 25px #00e5ff, 0 0 60px rgba(0, 229, 255, 0.4);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+}
+
+.orb-proxy {
+  display: none;
 }
 
 .orb.recalibrating {
-  box-shadow: 0 0 25px #ff9b4a, 0 0 60px rgba(255, 155, 74, 0.4);
+  box-shadow: 0 0 24px #ff9b4a, 0 0 60px rgba(255, 155, 74, 0.35);
   transform: scale(0.98);
+}
+
+.orb--neutral {
+  background: radial-gradient(circle at 35% 35%, #d7e3ff, #1d2742 70%);
+  box-shadow: 0 0 22px rgba(215, 227, 255, 0.35), 0 0 48px rgba(215, 227, 255, 0.16);
+}
+
+.orb--calm {
+  background: radial-gradient(circle at 30% 30%, #6ddcff, #0f2247 70%);
+  box-shadow: 0 0 28px rgba(109, 220, 255, 0.55), 0 0 60px rgba(0, 169, 255, 0.22);
+}
+
+.orb--compassionate {
+  background: radial-gradient(circle at 35% 35%, #ff9bf5, #16233f 70%);
+  box-shadow: 0 0 28px rgba(255, 155, 245, 0.55), 0 0 64px rgba(255, 155, 245, 0.22);
+}
+
+.orb--alert {
+  background: radial-gradient(circle at 30% 30%, #ffb95c, #26181b 70%);
+  box-shadow: 0 0 26px rgba(255, 185, 92, 0.55), 0 0 64px rgba(255, 94, 88, 0.28);
 }
 
 .chat-window {
