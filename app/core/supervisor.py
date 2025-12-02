@@ -1,7 +1,15 @@
-"""Supervisor entry point for validating and running the stability layer."""
-import argparse
-import logging
+"""Self-Healing Supervisor for NaMoNexus.
+Monitors the API Gateway and Dashboard, and attempts to restart them if they fail.
+Supervisor entry point for validating and running the stability layer.
+"""
+
+import time
+import subprocess
 import sys
+import os
+import logging
+import httpx
+import argparse
 from typing import NoReturn
 
 from app.core.supervisor_chain_v7 import SupervisorChainV7
@@ -9,41 +17,43 @@ from app.core.supervisor_chain_v7 import SupervisorChainV7
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    format="[%(asctime)s] [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
 )
-logger = logging.getLogger(__name__)
 
-def main() -> NoReturn:
-    parser = argparse.ArgumentParser(description="Supervisor Layer Validation")
-    parser.add_argument("--check-only", action="store_true", help="Perform a self-check and exit")
-    args = parser.parse_args()
+logger = logging.getLogger("Supervisor")
 
-    if args.check_only:
-        logger.info("Initializing Supervisor Chain for validation...")
-        try:
-            supervisor = SupervisorChainV7()
-            logger.info("Supervisor Chain initialized.")
+def check_health(url: str) -> bool:
+    try:
+        response = httpx.get(url, timeout=5)
+        return response.status_code == 200
+    except Exception as e:
+        logger.warning(f"Health check failed for {url}: {e}")
+        return False
 
-            logger.info("Running diagnostic step...")
-            # Run a dummy step to verify logic
-            result = supervisor.step(signal=0.5, symbols=["validation", "check"])
-            logger.info("Step Result: %s", result)
+def restart_service(service_name: str) -> None:
+    logger.info(f"Restarting {service_name}...")
+    subprocess.run(["systemctl", "restart", service_name], check=False)
+    time.sleep(3)
 
-            # Additional check: ensure keys exist
-            required_keys = ["cycle", "adaptive_factor", "prediction", "plan", "timestamp"]
-            missing_keys = [k for k in required_keys if k not in result]
-            if missing_keys:
-                raise ValueError(f"Missing keys in result: {missing_keys}")
+def monitor_loop() -> NoReturn:
+    urls = {
+        "gateway": "http://localhost:8000/health",
+        "dashboard": "http://localhost:3000"
+    }
 
-            logger.info("Supervisor check passed.")
-            sys.exit(0)
-        except Exception as e:
-            logger.error("Supervisor check failed: %s", e, exc_info=True)
-            sys.exit(1)
-    else:
-        logger.info("Supervisor running... (Not implemented)")
-        # Future implementation for running the loop indefinitely
-        sys.exit(0)
+    supervisor = SupervisorChainV7()
+
+    while True:
+        for name, url in urls.items():
+            if not check_health(url):
+                logger.warning(f"{name} service unhealthy. Attempting restart...")
+                restart_service(name)
+
+        supervisor.step(signal=1.0, symbols=["stability"])
+        time.sleep(10)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Run NaMoNexus Self-Healing Supervisor")
+    args = parser.parse_args()
+    monitor_loop()
