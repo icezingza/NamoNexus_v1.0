@@ -9,10 +9,15 @@ class RetrievalEngine:
         if entries is None:
             return "No prior reflections recorded."
 
-        try:
-            entries_list = list(entries)
-        except TypeError:
+        if isinstance(entries, dict):
+            entries_list = [entries]
+        elif isinstance(entries, (str, bytes)):
             return "No prior reflections recorded."
+        else:
+            try:
+                entries_list = list(entries)
+            except TypeError:
+                return "No prior reflections recorded."
 
         if not entries_list:
             return "No prior reflections recorded."
