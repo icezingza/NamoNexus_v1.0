@@ -1,0 +1,99 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Namo Core Engineer I/O Contract",
+    "type": "object",
+    "properties": {
+        "request": {
+            "type": "object",
+            "properties": {
+                "task": {
+                    "type": "string",
+                    "description": "Task to be performed"
+                },
+                "context": {
+                    "type": "object",
+                    "description": "Existing constraints, resources, or framework context"
+                },
+                "preferences": {
+                    "type": "object",
+                    "description": "Style, tone, or stack preferences (e.g., GCP/AWS)"
+                },
+                "data_samples": {
+                    "type": "array",
+                    "description": "Optional data samples for reference"
+                }
+            },
+            "required": [
+                "task"
+            ]
+        },
+        "response": {
+            "type": "object",
+            "properties": {
+                "summary": {
+                    "type": "string",
+                    "description": "Executive summary (5-10 lines)"
+                },
+                "architecture": {
+                    "type": "string",
+                    "description": "High-level architectural description"
+                },
+                "mermaid": {
+                    "type": "string",
+                    "description": "Mermaid diagram code"
+                },
+                "modules": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "role": {
+                                "type": "string"
+                            },
+                            "interfaces": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "schemas": {
+                    "type": "array",
+                    "description": "JSON schemas, DDLs, or payload examples"
+                },
+                "procedures": {
+                    "type": "array",
+                    "description": "Quick start steps or runbooks"
+                },
+                "evolution": {
+                    "type": "object",
+                    "description": "Self-evolution loop and decision criteria"
+                },
+                "safety": {
+                    "type": "object",
+                    "description": "Safety and compliance requirements"
+                },
+                "benchmarks": {
+                    "type": "object",
+                    "description": "Testing plan and KPIs"
+                },
+                "next_steps": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Immediate actionable next steps"
+                }
+            },
+            "required": [
+                "summary",
+                "next_steps"
+            ]
+        }
+    }
+}

@@ -1,0 +1,85 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Namo Core Memory Item",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "format": "uuid"
+        },
+        "embedding": {
+            "type": "array",
+            "items": {
+                "type": "number"
+            },
+            "description": "Vector embedding of the memory content"
+        },
+        "text": {
+            "type": "string",
+            "description": "Raw text content of the memory"
+        },
+        "tags": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Contextual tags (e.g., scene:market, npc:alba)"
+        },
+        "emotions": {
+            "type": "object",
+            "properties": {
+                "valence": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                },
+                "arousal": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "appraisal": {
+                    "type": "object",
+                    "properties": {
+                        "goal_congruence": {
+                            "type": "number"
+                        },
+                        "agency": {
+                            "type": "number"
+                        },
+                        "certainty": {
+                            "type": "number"
+                        }
+                    }
+                }
+            }
+        },
+        "time": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "decay_t": {
+            "type": "number",
+            "description": "Time constant for memory decay"
+        },
+        "conflict_group": {
+            "type": "string",
+            "description": "Identifier for conflict resolution grouping"
+        },
+        "source": {
+            "type": "string",
+            "enum": [
+                "event",
+                "chat",
+                "system",
+                "inference"
+            ]
+        }
+    },
+    "required": [
+        "id",
+        "text",
+        "time",
+        "source"
+    ]
+}

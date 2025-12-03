@@ -1,0 +1,104 @@
+{
+    "info": {
+        "name": "Namo Core Engineer Infinity API",
+        "description": "API collection for interacting with the Namo Core Engineer Infinity modules.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Memory Operations",
+            "item": [
+                {
+                    "name": "Store Memory",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"text\": \"User requested a new memory module.\",\n    \"tags\": [\"task:design\", \"module:memory\"],\n    \"source\": \"chat\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/memory/store",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "memory",
+                                "store"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Retrieve Memory",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"query\": \"memory module design\",\n    \"weights\": {\n        \"semantic\": 0.6,\n        \"emotional\": 0.2,\n        \"temporal\": 0.2\n    }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/memory/retrieve",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "memory",
+                                "retrieve"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Evolution Loop",
+            "item": [
+                {
+                    "name": "Submit Event",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"event_type\": \"user_interaction\",\n    \"payload\": { ... }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/evolution/event",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "evolution",
+                                "event"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000",
+            "type": "string"
+        }
+    ]
+}
