@@ -35,5 +35,23 @@ def test_fix_type_error():
     except TypeError as e:
          raise AssertionError(f"Caught TypeError: {e}")
 
+
+def test_summarize_handles_non_iterable_entries():
+    engine = RetrievalEngine()
+    summary = engine.summarize(None)
+    assert summary == "No prior reflections recorded."
+
+
+def test_summarize_handles_mixed_shapes():
+    engine = RetrievalEngine()
+    entries = [
+        {"reflection": ["direct string", {"reflection": {"reflection": "deep"}}]},
+        "not a dict",
+        {"reflection": {"reflection": 123}},
+    ]
+    summary = engine.summarize(entries)
+    assert "direct string" in summary or "deep" in summary
+
+
 if __name__ == "__main__":
     test_fix_type_error()
