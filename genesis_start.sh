@@ -16,9 +16,11 @@ pip install -r requirements.txt
 
 # Step 3. Preflight check
 echo "🧠 Running system integrity tests..."
-# Installing pytest and httpx if missing, to ensure tests can run
-pip install pytest httpx
-pytest -q --disable-warnings || { echo "❌ Tests failed. Aborting."; exit 1; }
+if python3 -c "import pytest" &> /dev/null; then
+    pytest -q --disable-warnings || { echo "❌ Tests failed. Aborting."; exit 1; }
+else
+    echo "⚠️ Test dependencies not found. Skipping preflight tests. (Install requirements-dev.txt to enable)"
+fi
 
 # Step 4. Launch services
 echo "🌐 Starting API Gateway on port 8080..."

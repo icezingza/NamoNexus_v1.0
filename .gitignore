@@ -10,3 +10,7 @@ venv/
 
 # OS-specific files
 .DS_Store
+# Logs
+logs/
+# Data
+data/memory_log.json
