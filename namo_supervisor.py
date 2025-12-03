@@ -30,7 +30,7 @@ TOKEN_FILE = Path(".github_token")
 
 def log(message: str) -> None:
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    formatted = f"[{timestamp}] {message}"
+    formatted = f"{message}"
     print(formatted)
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with LOG_FILE.open("a", encoding="utf-8") as fh:
