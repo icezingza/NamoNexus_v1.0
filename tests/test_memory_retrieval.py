@@ -52,6 +52,5 @@ def test_summarize_handles_mixed_shapes():
     summary = engine.summarize(entries)
     assert "direct string" in summary or "deep" in summary
 
-
 if __name__ == "__main__":
     test_fix_type_error()

@@ -1,3 +1,5 @@
-#!/bin/sh
-cd "$(git rev-parse --show-toplevel)" || exit 1
-bash namo_git_supervisor_v3.sh
+#!/bin/bash
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+bash auto_resolve_genesis_conflicts_v2.sh
