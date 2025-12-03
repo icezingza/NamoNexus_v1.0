@@ -1,0 +1,22 @@
+{
+  "timeline": [
+    {
+      "agent": "A1",
+      "reflection": "Compassion grows with awareness",
+      "growth_factor": 0.72,
+      "timestamp": "2025-12-03T10:01:39.677366"
+    },
+    {
+      "agent": "A2",
+      "reflection": "Understanding impermanence",
+      "growth_factor": 0.65,
+      "timestamp": "2025-12-03T10:01:39.677918"
+    },
+    {
+      "agent": "A3",
+      "reflection": "Calm reflects clarity",
+      "growth_factor": 0.83,
+      "timestamp": "2025-12-03T10:01:39.678607"
+    }
+  ]
+}
