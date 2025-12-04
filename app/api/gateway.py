@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
@@ -19,6 +19,13 @@ from app.safety.risk_evaluator import RiskEvaluator
 
 class ReflectionRequest(BaseModel):
     text: str
+
+
+class ChatRequest(BaseModel):
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+    message: str
+    locale: Optional[str] = "th-TH"
 
 
 def create_app() -> FastAPI:
@@ -77,6 +84,48 @@ def create_app() -> FastAPI:
     @app.post("/namo/dialogue")
     def dialogue(request: ReflectionRequest) -> dict[str, Any]:
         return reflect(request)
+
+    @app.post("/v1/chat")
+    def chat(request: ChatRequest) -> dict[str, Any]:
+        if not request.message or not str(request.message).strip():
+            raise HTTPException(status_code=400, detail={"message": "Message is required"})
+
+        text = str(request.message).strip()
+
+        safety = {"flagged": []}
+        risk_score = {"score": 0.0, "category": "low"}
+        if safety_enabled:
+            safety = check_safe(text)
+            risk_score = risk.score(safety["flagged"])
+
+        if safety_enabled and risk_score["category"] == "high":
+            return {
+                "reply": "The request was refused for safety reasons.",
+                "emotion": {},
+                "dharma": {},
+                "safety": {
+                    "risk_score": risk_score["score"],
+                    "risk_level": risk_score["category"],
+                    "flagged": safety["flagged"],
+                },
+            }
+
+        result = persona.process(text)
+
+        return {
+            "reply": result.get("reflection_text", ""),
+            "emotion": result.get("emotion", {}),
+            "dharma": {
+                "tags": result.get("dhamma_tags", []),
+                "moral_index": result.get("moral_index", 0.0),
+                "tone": result.get("tone", "neutral"),
+            },
+            "safety": {
+                "risk_score": risk_score["score"],
+                "risk_level": risk_score["category"],
+                "flagged": safety.get("flagged", []),
+            },
+        }
 
     return app
 

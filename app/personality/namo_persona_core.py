@@ -58,6 +58,7 @@ class NamoPersonaCore:
             "dhamma_tags": self._derive_tags(reflection, emotion),
             "coherence": coherence_value if coherence_value is not None else 0.0,
             "memory_summary": memory_summary,
+            "emotion": emotion,
         }
 
     def _derive_tags(self, reflection: dict[str, Any], emotion: dict[str, Any]) -> list[str]:
