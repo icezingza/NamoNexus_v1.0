@@ -12,7 +12,7 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-from app.core.config import get_settings
+from namo_nexus.core.config import get_settings
 
 
 def setup_logging() -> None:

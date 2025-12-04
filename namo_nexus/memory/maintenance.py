@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from app.core.config import get_settings
+from namo_nexus.core.config import get_settings
 
 
 class PersistenceAdapter:

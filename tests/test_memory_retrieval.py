@@ -1,5 +1,5 @@
 
-from app.memory.retrieval_engine import RetrievalEngine
+from namo_nexus.memory.retriever import RetrievalEngine
 
 def test_fix_type_error():
     # Simulate the structure saved by NamoPersonaCore and MemoryStore

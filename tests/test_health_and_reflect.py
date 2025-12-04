@@ -1,7 +1,7 @@
 """Minimal API tests for health and reflect endpoints."""
 from fastapi.testclient import TestClient
 
-from main import app
+from namo_nexus.main import app
 
 
 client = TestClient(app)

@@ -12,7 +12,7 @@ except ImportError:  # pragma: no cover - optional dependency
     dcc = None
     html = None
 
-from app.api.monitoring import get_metrics
+from namo_nexus.api.monitoring import get_metrics
 
 
 def create_dashboard() -> Dash | None:

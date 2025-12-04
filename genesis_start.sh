@@ -25,10 +25,10 @@ fi
 # Step 4. Launch services
 echo "🌐 Starting API Gateway on port 8080..."
 mkdir -p logs
-nohup python3 -m app.api.gateway > logs/api_gateway.log 2>&1 &
+nohup python3 -m namo_nexus.api.http_server > logs/api_gateway.log 2>&1 &
 
 echo "🖥️  Starting Dharma Dashboard on port 8050..."
-nohup python3 -m app.api.dashboard > logs/dashboard.log 2>&1 &
+nohup python3 -m namo_nexus.api.dashboard > logs/dashboard.log 2>&1 &
 
 # Step 5. Health verification
 echo "🩺 Checking system health..."

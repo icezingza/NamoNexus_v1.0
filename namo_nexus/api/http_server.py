@@ -7,14 +7,14 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 
-from app.core.config import get_settings
-from app.core.logging_middleware import LoggingMiddleware, setup_logging
+from namo_nexus.core.config import get_settings
+from namo_nexus.core.logging_middleware import LoggingMiddleware, setup_logging
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from app.personality.namo_persona_core import NamoPersonaCore
-from app.safety.guard import check_safe
-from app.safety.risk_evaluator import RiskEvaluator
+from namo_nexus.cog.namo_persona_core import NamoPersonaCore
+from namo_nexus.safety.intention_manager import check_safe
+from namo_nexus.safety.threat_analyzer import RiskEvaluator
 
 
 class ReflectionRequest(BaseModel):

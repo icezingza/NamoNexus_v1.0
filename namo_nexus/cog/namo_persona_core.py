@@ -4,15 +4,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from app.core.config import get_settings
-from app.emotion.analyzer import EmotionAnalyzer
-from app.memory.retrieval_engine import RetrievalEngine
-from app.memory.store import MemoryStore
-from app.personality.dhammic_reflection_engine import DhammicReflectionEngine
-from app.emotion.analyzer import EmotionAnalyzer
-from app.memory.store import MemoryStore
-from app.personality.dhammic_reflection_engine import DhammicReflectionEngine
-from app.memory.retrieval_engine import RetrievalEngine
+from namo_nexus.core.config import get_settings
+from namo_nexus.affect.analyzer import EmotionAnalyzer
+from namo_nexus.memory.retriever import RetrievalEngine
+from namo_nexus.memory.hybrid_store import MemoryStore
+from namo_nexus.cog.dharma_engine import DhammicReflectionEngine
 
 
 @dataclass

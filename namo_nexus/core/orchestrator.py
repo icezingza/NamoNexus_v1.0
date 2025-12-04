@@ -8,7 +8,7 @@ from typing import Any
 from .logging_middleware import LoggingMiddleware
 from .meta_learning_engine import MetaLearningEngine
 from .predictive_optimizer import PredictiveOptimizer
-from .symbolic_planner import plan
+from .context_builder import plan
 
 
 @dataclass
