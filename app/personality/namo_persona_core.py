@@ -28,7 +28,7 @@ class NamoPersonaCore:
             emotion.pop("coherence", None)
 
         if settings.FEATURE_FLAGS.get("ENABLE_DHAMMA_REFLECTION", True):
-            reflection = self.reflection_engine.reflect(text, emotion)
+            reflection = self.reflection_engine.reflect(emotion.get("state", {}), text)
         else:
             reflection = {
                 "reflection": text,
