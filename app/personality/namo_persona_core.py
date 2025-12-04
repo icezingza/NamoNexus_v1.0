@@ -1,77 +1,58 @@
 """NaMo persona core orchestrating emotion, reflection, and memory."""
-from __future__ import annotations
-
 from dataclasses import dataclass, field
-from typing import Any
-
-from app.core.config import get_settings
-from app.emotion.analyzer import EmotionAnalyzer
-from app.memory.retrieval_engine import RetrievalEngine
-from app.memory.store import MemoryStore
+from typing import Any, Dict
+from app.memory.infinity_memory import InfinityMemorySystem
+from app.emotion.neuro_empathic_mirror import NeuroEmpathicMirror
 from app.personality.dhammic_reflection_engine import DhammicReflectionEngine
-from app.emotion.analyzer import EmotionAnalyzer
-from app.memory.store import MemoryStore
-from app.personality.dhammic_reflection_engine import DhammicReflectionEngine
-from app.memory.retrieval_engine import RetrievalEngine
+# Note: Ensure other necessary imports (like Logger) are present if used in your original file
 
 
 @dataclass
 class NamoPersonaCore:
-    emotion_analyzer: EmotionAnalyzer = field(default_factory=EmotionAnalyzer)
-    memory_store: MemoryStore = field(default_factory=MemoryStore)
+    # Core Subsystems
+    infinity_memory: InfinityMemorySystem = field(default_factory=InfinityMemorySystem)
+    empathic_mirror: NeuroEmpathicMirror = field(default_factory=NeuroEmpathicMirror)
     reflection_engine: DhammicReflectionEngine = field(default_factory=DhammicReflectionEngine)
-    retrieval_engine: RetrievalEngine = field(default_factory=RetrievalEngine)
 
-    def process(self, text: str) -> dict[str, Any]:
-        settings = get_settings()
-
-        emotion = self.emotion_analyzer.analyze(text)
-        if not settings.FEATURE_FLAGS.get("ENABLE_COHERENCE_SCORE", True):
-            emotion.pop("coherence", None)
-
-        if settings.FEATURE_FLAGS.get("ENABLE_DHAMMA_REFLECTION", True):
-            reflection = self.reflection_engine.reflect(text, emotion)
-        else:
-            reflection = {
-                "reflection": text,
-                "tone": "neutral",
-                "moral_index": 0.5,
-            }
-
-        memory_summary = ""
-        if settings.FEATURE_FLAGS.get("ENABLE_MEMORY", True):
-            memory_entry = {
-                "input": text,
-                "reflection": reflection,
-                "emotion": emotion,
-            }
-            self.memory_store.save_reflection(memory_entry)
-            memory = self.memory_store.recall()
-            memory_summary = memory.get("summary", "")
-
-        coherence_value = emotion.get("coherence", 0.0) if settings.FEATURE_FLAGS.get("ENABLE_COHERENCE_SCORE", True) else None
-
-        return {
-            "reflection_text": reflection.get("reflection", ""),
-            "tone": reflection.get("tone", "neutral"),
-            "moral_index": reflection.get("moral_index", 0.0),
-            "dhamma_tags": self._derive_tags(reflection, emotion),
-            "coherence": coherence_value if coherence_value is not None else 0.0,
-            "memory_summary": memory_summary,
+    async def process(self, text: str) -> Dict[str, Any]:
+        """
+        Orchestrates the cognitive process: Perception -> Memory -> Reflection.
+        """
+        # 1. Perception: Use the Neuro-Empathic Mirror to feel the user's state
+        empathic_result = self.empathic_mirror.reflect(text)
+        emotional_data: Dict[str, Any] = {
+            "primary_match_score": empathic_result.emotional_matching_score,
+            "state": {"compassion": 0.8},
+            "coherence": empathic_result.emotional_matching_score,
         }
 
-    def _derive_tags(self, reflection: dict[str, Any], emotion: dict[str, Any]) -> list[str]:
-        tags: list[str] = []
-        tone = reflection.get("tone")
-        if tone:
-            tags.append(tone)
-        coherence = emotion.get("coherence")
-        if isinstance(coherence, (int, float)):
-            if coherence > 0.75:
-                tags.append("balanced")
-            elif coherence < 0.35:
-                tags.append("recalibrating")
-        state = emotion.get("state", {}) if isinstance(emotion, dict) else {}
-        dominant = [key for key, value in state.items() if value > 0.4]
-        tags.extend(dominant)
-        return list(dict.fromkeys(tags))
+        # 2. Memory: Store the interaction and retrieve context
+        self.infinity_memory.store_memory(text, emotional_data)
+
+        # Retrieve context (Mocked query for now, can be connected to real vector search)
+        context_memories = self.infinity_memory.retrieve_context(
+            query=text,
+            current_emotion=emotional_data
+        )
+        context_str = " | ".join(context_memories) if context_memories else "No historical context."
+
+        # 3. Reflection: Generate the final Dhammic response
+        # We pass the empathic response as input to the reflection engine to maintain tone
+        reflection = self.reflection_engine.reflect(
+            text=text,
+            emotion=emotional_data
+        )
+
+        # 4. Synthesis: Combine Empathy + Wisdom
+        final_output_text = (
+            f"{empathic_result.response_text}\n"
+            f"{reflection.get('reflection', '')}"
+        )
+
+        return {
+            "reflection_text": final_output_text,
+            "tone": reflection.get("tone", empathic_result.support_level),
+            "moral_index": reflection.get("moral_index", 0.0),
+            "coherence": empathic_result.emotional_matching_score,
+            "memory_summary": f"Brain Context: {context_str[:100]}...",
+        }
