@@ -1,14 +1,15 @@
 import json
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List
 
 import numpy as np
+from app.core.config import get_settings
 
 # ตรวจสอบ Library (ถ้ายังไม่ลง จะรันแบบ Simulation ให้ก่อนกัน Error)
 try:
     import chromadb
-    from chromadb.config import Settings
     HAS_CHROMA = True
 except ImportError:
     HAS_CHROMA = False
@@ -25,6 +26,8 @@ try:
 except ImportError:
     HAS_REDIS = False
 
+logger = logging.getLogger(__name__)
+
 @dataclass
 class MemoryRecord:
     """โครงสร้างข้อมูลความจำ"""
@@ -38,21 +41,23 @@ class InfinityMemorySystem:
     """
     ระบบความจำระยะยาวแบบ Vector-Based (จำบริบท + อารมณ์)
     """
-    
+
     def __init__(self, db_path="./data/chroma_db"):
+        self.settings = get_settings()
+        self.phi = self.settings.PHI
         self.db_path = db_path
         self.vector_db = self._init_vector_db()
         self.redis_client = self._init_redis()
         self.embedder = self._init_embedder()
         # น้ำหนักความสำคัญของอารมณ์ (จำเรื่องสะเทือนใจได้แม่นกว่า)
         self.emotional_weights = {
-            'joy': 0.8, 'sadness': 0.9, 'anger': 0.8, 
-            'fear': 0.9, 'love': 1.0, 'neutral': 0.3
+            'joy': 0.8, 'sadness': 0.7, 'anger': 0.6,
+            'fear': 0.9, 'surprise': 0.5, 'love': 1.0
         }
 
     def _init_vector_db(self):
         if not HAS_CHROMA:
-            print("⚠️ [Memory] ChromaDB not found. Running in Simulation Mode.")
+            logger.warning("ChromaDB not found. Running in Simulation Mode.")
             return None
         try:
             # สร้าง Persistent Client เพื่อเก็บข้อมูลลงไฟล์จริง
@@ -63,7 +68,7 @@ class InfinityMemorySystem:
             )
             return collection
         except Exception as e:
-            print(f"⚠️ [Memory] DB Init Error: {e}")
+            logger.error(f"Failed to initialize ChromaDB: {e}")
             return None
 
     def _init_redis(self):
@@ -72,7 +77,8 @@ class InfinityMemorySystem:
         try:
             # เชื่อมต่อ Redis (ถ้ามี) เพื่อ Cache ความจำระยะสั้น
             return redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
-        except:
+        except Exception as exc:
+            logger.warning(f"Failed to connect to Redis: {exc}")
             return None
 
     def _init_embedder(self):
@@ -92,6 +98,16 @@ class InfinityMemorySystem:
             except Exception as exc:
                 print(f"⚠️ [Memory] Embed Error: {exc}")
         return np.random.rand(384).tolist()
+
+    def _calculate_temporal_relevance(self, memory_timestamp: str) -> float:
+        """คำนวณน้ำหนักความเกี่ยวข้องตามเวลาโดยใช้ค่า Phi."""
+        try:
+            mem_time = datetime.fromisoformat(memory_timestamp)
+            hours_passed = (datetime.now() - mem_time).total_seconds() / 3600
+            decay_factor = self.phi ** (hours_passed / 24.0)
+            return 1.0 / decay_factor
+        except Exception:
+            return 1.0
 
     def store_memory(self, text: str, emotion: Dict[str, float]) -> str:
         """บันทึกความจำใหม่"""
@@ -114,10 +130,10 @@ class InfinityMemorySystem:
                     }],
                     ids=[f"mem_{datetime.now().timestamp()}"]
                 )
-                print(f"💾 [Brain] Stored: '{text[:20]}...' (Intensity: {intensity:.2f})")
+                logger.info(f"Memory stored successfully. Intensity: {intensity:.2f}")
             except Exception as e:
-                print(f"❌ [Brain] Save Error: {e}")
-        
+                logger.error(f"Error storing memory: {e}")
+
         return "memory_stored"
 
     def retrieve_context(self, query: str, current_emotion: Dict[str, float], k: int = 3):
@@ -131,11 +147,26 @@ class InfinityMemorySystem:
         try:
             results = self.vector_db.query(
                 query_embeddings=[dummy_query_vec],
-                n_results=k
+                n_results=k,
+                include=["documents", "metadatas"]
             )
             # คืนค่าเฉพาะเนื้อหาข้อความ
-            memories = results['documents'][0] if results['documents'] else []
-            return memories
+            documents = results.get('documents', [])
+            metadatas = results.get('metadatas', [])
+
+            if documents and metadatas:
+                scored_results = []
+                for doc, meta in zip(documents[0], metadatas[0]):
+                    timestamp = meta.get("timestamp") if isinstance(meta, dict) else None
+                    intensity = float(meta.get("intensity", 0.0)) if isinstance(meta, dict) else 0.0
+                    temporal_score = self._calculate_temporal_relevance(timestamp) if timestamp else 1.0
+                    combined_score = temporal_score * max(intensity, 0.0)
+                    scored_results.append((doc, combined_score))
+
+                scored_results.sort(key=lambda item: item[1], reverse=True)
+                return [doc for doc, _ in scored_results]
+
+            return documents[0] if documents else []
         except Exception as e:
-            print(f"❌ [Brain] Retrieval Error: {e}")
+            logger.error(f"Error retrieving context: {e}")
             return []
