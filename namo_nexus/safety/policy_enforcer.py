@@ -1,7 +1,8 @@
 class PolicyEnforcer:
-    def enforce(self, message, reply, threat, emotion):
-        return reply, {
-            "risk_level": "low",
-            "actions": [],
-            "policy_version": "1.0"
-        }
+    def check_compliance(self, response_text: str) -> bool:
+        # Dummy check
+        forbidden_terms = ["violence", "harm"]
+        for term in forbidden_terms:
+            if term in response_text.lower():
+                return False
+        return True

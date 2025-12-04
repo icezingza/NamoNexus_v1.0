@@ -1,3 +1,3 @@
 class ThreatAnalyzer:
-    def analyze(self, message, planned_reply, ctx):
-        return {}
+    def analyze(self, text: str) -> dict:
+        return {"threat_level": "low", "detected_threats": []}

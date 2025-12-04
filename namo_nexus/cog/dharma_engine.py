@@ -1,3 +1,6 @@
+from typing import Dict, Any, List
+
+
 class DharmaEngine:
     def apply_dharma(self, message, principles, ctx):
         return {

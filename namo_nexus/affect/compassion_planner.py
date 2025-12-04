@@ -1,22 +1,9 @@
-from typing import Dict, Any, Optional
-
+from typing import Dict, Any
 
 class CompassionPlanner:
-    """Plans a compassionate, grounded reply."""
-
-    def plan_reply(
-        self,
-        original_message: str,
-        dharma_view: Dict[str, Any],
-        emotion: Dict[str, Any],
-        safe_template: Optional[str],
-    ) -> str:
-        if safe_template:
-            return safe_template
-
-        base = "ขอบคุณที่ไว้ใจเล่าให้ฟังนะ "
-        if emotion["distress_level"] == "high":
-            base += "ตอนนี้ขอชวนค่อย ๆ หายใจลึก ๆ แล้วรับรู้ว่าความรู้สึกนี้ไม่ได้อยู่ถาวร "
-        base += "เราลองคุยกันทีละขั้นได้เสมอ"
-
-        return base
+    def plan_response_strategy(self, emotion_state: Dict[str, Any]) -> str:
+        if emotion_state.get("distress_level") == "high":
+            return "supportive_intervention"
+        if emotion_state.get("valence", 0) < 0:
+            return "empathetic_listening"
+        return "balanced_dialogue"

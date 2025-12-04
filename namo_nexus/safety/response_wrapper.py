@@ -1,3 +1,4 @@
 class ResponseWrapper:
-    def wrap(self, safe_reply, safety_info):
-        return safe_reply
+    def wrap(self, text: str, safety_metadata: dict) -> str:
+        # Potentially add disclaimer or safety footer
+        return text

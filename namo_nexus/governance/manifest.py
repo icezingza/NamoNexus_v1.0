@@ -1,12 +1,7 @@
-from dataclasses import dataclass
-from datetime import datetime
+class Manifest:
+    VERSION = "1.0"
+    CORE_VALUES = ["Compassion", "Wisdom", "Safety"]
 
-
-@dataclass
-class SystemManifest:
-    """Simple manifest inspired by FormGenesis manifest."""
-    name: str = "NamoNexus"
-    version: str = "0.1.0"
-    stage: str = "alpha"
-    build_id: str = "dev"
-    created_at: str = datetime.utcnow().isoformat() + "Z"
+    @classmethod
+    def get_info(cls):
+        return {"version": cls.VERSION, "values": cls.CORE_VALUES}
