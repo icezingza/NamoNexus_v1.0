@@ -1,0 +1,2 @@
+class IntentionManager:
+    pass
