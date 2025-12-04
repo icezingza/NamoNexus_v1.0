@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     MEMORY_PATH: str = "data/memory_log.json"
     MAX_MEMORY_ENTRIES: int = 200
+    PHI: float = 1.61803398875
 
     FEATURE_FLAGS: Dict[str, bool] = {
         "ENABLE_SAFETY": True,
@@ -22,6 +23,7 @@ class Settings(BaseSettings):
         "ENABLE_DHAMMA_REFLECTION": True,
         "ENABLE_COHERENCE_SCORE": True,
         "ENABLE_LOGGING": True,
+        "ENABLE_INFINITY_MEMORY": True,
     }
 
     class Config:

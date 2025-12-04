@@ -1,7 +1,7 @@
 import hashlib
 import logging
 from importlib.util import find_spec
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class NeuroEmpathicMirror:
         self.empathy_templates = self._load_templates()
         logger.info("Neuro-Empathic Mirror initialized.")
 
-    def _init_model(self) -> Optional[Any]:
+    def _init_model(self):
         """
         Initializes the Hugging Face emotion classification pipeline.
         Uses a DistilBERT model optimized for emotion detection.
@@ -87,33 +87,28 @@ class NeuroEmpathicMirror:
         """
         # Default neutral state
         default_state = {'joy': 0.1, 'sadness': 0.1, 'anger': 0.1, 'fear': 0.1, 'love': 0.1}
-        if not text or not text.strip():
-            return default_state
-
+        
         if self.analyzer:
             try:
                 results = self.analyzer(text)[0]
                 # Normalize scores to dictionary format
-                scores = {item['label'].lower(): item['score'] for item in results}
-                for emotion, score in scores.items():
-                    if emotion in default_state:
-                        default_state[emotion] = score
-                return default_state
+                scores = {item['label']: item['score'] for item in results}
+                return {**default_state, **scores}
             except Exception as e:
                 logger.error(f"Analysis failed: {e}")
                 pass
-
+        
         # Fallback simulation logic (Keyword based) if model fails
         text_lower = text.lower()
         if 'happy' in text_lower or 'good' in text_lower:
             default_state['joy'] = 0.8
-        elif 'sad' in text_lower or 'bad' in text_lower:
+        if 'sad' in text_lower or 'bad' in text_lower:
             default_state['sadness'] = 0.8
-        elif 'angry' in text_lower or 'hate' in text_lower:
+        if 'angry' in text_lower or 'hate' in text_lower:
             default_state['anger'] = 0.8
-        elif 'afraid' in text_lower or 'scared' in text_lower or 'fear' in text_lower:
+        if 'afraid' in text_lower or 'scared' in text_lower or 'fear' in text_lower:
             default_state['fear'] = 0.8
-        elif 'love' in text_lower or 'loved' in text_lower or 'caring' in text_lower:
+        if 'love' in text_lower or 'loved' in text_lower or 'caring' in text_lower:
             default_state['love'] = 0.8
         
         return default_state
