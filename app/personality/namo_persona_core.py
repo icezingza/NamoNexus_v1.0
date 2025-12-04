@@ -1,6 +1,4 @@
 """NaMo persona core orchestrating emotion, reflection, and memory."""
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -14,8 +12,9 @@ from app.personality.dhammic_reflection_engine import DhammicReflectionEngine
 
 @dataclass
 class NamoPersonaCore:
-    emotion_analyzer: EmotionAnalyzer = field(default_factory=EmotionAnalyzer)
-    memory_store: MemoryStore = field(default_factory=MemoryStore)
+    # Core Subsystems
+    infinity_memory: InfinityMemorySystem = field(default_factory=InfinityMemorySystem)
+    empathic_mirror: NeuroEmpathicMirror = field(default_factory=NeuroEmpathicMirror)
     reflection_engine: DhammicReflectionEngine = field(default_factory=DhammicReflectionEngine)
     retrieval_engine: RetrievalEngine = field(default_factory=RetrievalEngine)
     infinity_memory: InfinityMemorySystem = field(default_factory=InfinityMemorySystem)
@@ -65,26 +64,10 @@ class NamoPersonaCore:
         coherence_value = emotion.get("coherence", 0.0) if settings.FEATURE_FLAGS.get("ENABLE_COHERENCE_SCORE", True) else None
 
         return {
-            "reflection_text": reflection.get("reflection", ""),
-            "tone": reflection.get("tone", "neutral"),
+            "reflection_text": final_output_text,
+            "tone": reflection.get("tone", empathic_result.support_level),
             "moral_index": reflection.get("moral_index", 0.0),
             "dhamma_tags": self._derive_tags(reflection, emotion),
             "coherence": coherence_value if coherence_value is not None else 0.0,
             "memory_summary": combined_memory_summary,
         }
-
-    def _derive_tags(self, reflection: dict[str, Any], emotion: dict[str, Any]) -> list[str]:
-        tags: list[str] = []
-        tone = reflection.get("tone")
-        if tone:
-            tags.append(tone)
-        coherence = emotion.get("coherence")
-        if isinstance(coherence, (int, float)):
-            if coherence > 0.75:
-                tags.append("balanced")
-            elif coherence < 0.35:
-                tags.append("recalibrating")
-        state = emotion.get("state", {}) if isinstance(emotion, dict) else {}
-        dominant = [key for key, value in state.items() if value > 0.4]
-        tags.extend(dominant)
-        return list(dict.fromkeys(tags))
