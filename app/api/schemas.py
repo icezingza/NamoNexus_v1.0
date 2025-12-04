@@ -1,9 +1,8 @@
-from typing import Dict, Any
 from pydantic import BaseModel, Field
 
 class ChatRequest(BaseModel):
-    message: str
-    user_id: str
-    session_id: str
-    locale: str = "en-US"
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    message: str = Field(..., description="The user's message")
+    user_id: str = Field(default="default_user", description="The ID of the user")
+
+class ChatResponse(BaseModel):
+    response: str = Field(..., description="The response from the AI")
