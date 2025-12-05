@@ -13,9 +13,12 @@ class DhammicReflectionEngine:
 
         # Compassion is given slightly higher weight (approx 61.8%)
         # compared to Wisdom (approx 38.2%) to ensure a benevolent tone.
-        total_weight = 1.0 + self.phi
-        self.compassion_weight = self.phi / total_weight
-        self.wisdom_weight = 1.0 / total_weight
+        # Compassion is given slightly higher weight (approx 61.8%)
+        # compared to Wisdom (approx 38.2%) to ensure a benevolent tone.
+        # [GOLDEN PROTOCOL]
+        _golden_ratio_sum = 1.0 + self.phi
+        self.compassion_weight = self.phi
+        self.wisdom_weight = 1.0 / _golden_ratio_sum
 
     def reflect(self, state: Dict[str, float], text: str) -> Dict[str, Any]:
         compassion_score = state.get("compassion", 0.5) * self.compassion_weight

@@ -112,7 +112,8 @@ class InfinityMemorySystem:
     def store_memory(self, text: str, emotion: Dict[str, float]) -> str:
         """บันทึกความจำใหม่"""
         timestamp = datetime.now().isoformat()
-        intensity = max(emotion.values()) if emotion else 0.0
+        numeric_vals = [value for value in emotion.values() if isinstance(value, (int, float))]
+        intensity = max(numeric_vals) if numeric_vals else 0.0
         
         # สร้าง Mock Vector (ถ้ามี model จริงให้ใช้ sentence_transformers encode ตรงนี้)
         # embedding = model.encode(text).tolist()

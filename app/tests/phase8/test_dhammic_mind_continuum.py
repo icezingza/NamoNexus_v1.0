@@ -2,12 +2,14 @@
 Test for Phase 8: Dhammic Mind Continuum
 """
 import asyncio
+import pytest
 from app.core.continuum.reflective_synchrony_engine import ReflectiveSynchronyEngine
 from app.core.continuum.collective_growth_matrix import CollectiveGrowthMatrix
 from app.core.continuum.adaptive_continuum_memory import AdaptiveContinuumMemory
 from app.core.continuum.supervisor_mirror_protocol import SupervisorMirrorProtocol
 
-async def run_test():
+@pytest.mark.asyncio
+async def test_dhammic_mind_continuum_flow():
     rse = ReflectiveSynchronyEngine()
     cgm = CollectiveGrowthMatrix()
     acm = AdaptiveContinuumMemory()
@@ -32,5 +34,4 @@ async def run_test():
     print("💠 Dhammic Resonance Index (DRI):", dri)
     print("📡 Supervisor Mirror:", note)
 
-if __name__ == "__main__":
-    asyncio.run(run_test())
+

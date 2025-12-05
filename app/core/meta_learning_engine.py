@@ -14,8 +14,11 @@ class MetaLearningEngine:
     max_factor: float = 2.0
     history: list[float] = field(default_factory=list)
 
+    learning_rate: float = 0.381966
+
     def __post_init__(self) -> None:
-        self.learning_rate: float = 1.0 / (self.phi ** 2)
+        # self.learning_rate is now set at class level
+        pass
 
     def adjust(self, feedback: float) -> float:
         """Adjust the adaptive factor based on feedback in a bounded manner."""

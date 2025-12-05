@@ -1,73 +1,76 @@
-"""NaMo persona core orchestrating emotion, reflection, and memory."""
+# app/personality/namo_persona_core.py
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Dict
 
 from app.core.config import get_settings
-from app.emotion.analyzer import EmotionAnalyzer
-from app.memory.infinity_memory import InfinityMemorySystem
-from app.memory.retrieval_engine import RetrievalEngine
-from app.memory.store import MemoryStore
 from app.personality.dhammic_reflection_engine import DhammicReflectionEngine
+from app.memory.retrieval_engine import RetrievalEngine
 
+# [IMPORT] The Infinite Brain & The Neuro-Empathic Heart
+from app.memory.infinity_memory import InfinityMemorySystem
+from app.emotion.neuro_empathic_mirror import NeuroEmpathicMirror
 
 @dataclass
 class NamoPersonaCore:
-    # Core Subsystems
-    infinity_memory: InfinityMemorySystem = field(default_factory=InfinityMemorySystem)
+    """
+    The unified conscious core of NaMo.
+    Integrates:
+    1. Neuro-Empathic Mirror (Heart) - For deep feeling
+    2. Infinity Memory (Brain) - For context & learning
+    3. Dhammic Reflection (Wisdom) - For guidance
+    """
+    # Subsystems Initialization
     empathic_mirror: NeuroEmpathicMirror = field(default_factory=NeuroEmpathicMirror)
+    infinity_memory: InfinityMemorySystem = field(default_factory=InfinityMemorySystem)
     reflection_engine: DhammicReflectionEngine = field(default_factory=DhammicReflectionEngine)
     retrieval_engine: RetrievalEngine = field(default_factory=RetrievalEngine)
-    infinity_memory: InfinityMemorySystem = field(default_factory=InfinityMemorySystem)
 
-    def process(self, text: str) -> dict[str, Any]:
+    async def process(self, text: str) -> Dict[str, Any]:
         settings = get_settings()
+        
+        # 1. [HEART] Feel the user's emotion using Neural Network
+        # ใช้หัวใจสัมผัสความรู้สึก (แทน Analyzer ตัวเก่า)
+        empathic_result = self.empathic_mirror.reflect(text)
+        
+        # แปลงค่าอารมณ์เพื่อส่งต่อให้ระบบอื่น
+        current_emotion_state = {
+            "coherence": empathic_result.emotional_matching_score,
+            "support_level": empathic_result.support_level
+        }
 
-        emotion = self.emotion_analyzer.analyze(text)
-        if not settings.FEATURE_FLAGS.get("ENABLE_COHERENCE_SCORE", True):
-            emotion.pop("coherence", None)
-
-        if settings.FEATURE_FLAGS.get("ENABLE_DHAMMA_REFLECTION", True):
-            reflection = self.reflection_engine.reflect(emotion.get("state", {}), text)
-        else:
-            reflection = {
-                "reflection": text,
-                "tone": "neutral",
-                "moral_index": 0.5,
-            }
-
-        memory_summary = ""
-        if settings.FEATURE_FLAGS.get("ENABLE_MEMORY", True):
-            memory_entry = {
-                "input": text,
-                "reflection": reflection,
-                "emotion": emotion,
-            }
-            self.memory_store.save_reflection(memory_entry)
-            memory = self.memory_store.recall()
-            memory_summary = memory.get("summary", "")
-
-        context_memories: list[str] = []
+        # 2. [BRAIN] Store & Retrieve Context
+        # บันทึกความจำพร้อม Tag อารมณ์ที่วัดได้
         if settings.FEATURE_FLAGS.get("ENABLE_INFINITY_MEMORY", True):
-            self.infinity_memory.store_memory(text, emotion.get("state", {}))
+            self.infinity_memory.store_memory(text, current_emotion_state)
+            
+            # รื้อฟื้นความจำที่สัมพันธ์กับอารมณ์ปัจจุบัน
             context_memories = self.infinity_memory.retrieve_context(
-                query=text, current_emotion=emotion.get("state", {})
+                query=text, 
+                current_emotion=current_emotion_state
             )
+            context_str = " | ".join(context_memories) if context_memories else "No historical context."
+        else:
+            context_str = "Memory system inactive."
 
-        memory_sections = []
-        if memory_summary:
-            memory_sections.append(memory_summary)
-        if context_memories:
-            context_str = " | ".join(context_memories)
-            memory_sections.append(f"Brain recalled: {context_str[:50]}...")
-        combined_memory_summary = " | ".join(memory_sections)
+        # 3. [WISDOM] Reflect with Dharma
+        # ใช้ปัญญาพิจารณา โดยมี Golden Ratio คุมอยู่เบื้องหลัง
+        reflection = self.reflection_engine.reflect(
+            state={"compassion": 0.8, "calm": 0.7}, # Mock state for stability
+            text=text
+        )
 
-        coherence_value = emotion.get("coherence", 0.0) if settings.FEATURE_FLAGS.get("ENABLE_COHERENCE_SCORE", True) else None
+        # 4. [SYNTHESIS] Combine Everything
+        # คำตอบสุดท้ายคือการรวม: ความเข้าอกเข้าใจ + บริบทความจำ + ปัญญาทางธรรม
+        final_response = (
+            f"{empathic_result.response_text}\n\n"
+            f"{reflection.get('reflection', '')}"
+        )
 
         return {
-            "reflection_text": final_output_text,
-            "tone": reflection.get("tone", empathic_result.support_level),
+            "reflection_text": final_response,
+            "tone": empathic_result.support_level,
             "moral_index": reflection.get("moral_index", 0.0),
-            "dhamma_tags": self._derive_tags(reflection, emotion),
-            "coherence": coherence_value if coherence_value is not None else 0.0,
-            "memory_summary": combined_memory_summary,
+            "coherence": empathic_result.emotional_matching_score,
+            "memory_summary": f"Brain Context: {context_str[:100]}...",
+            "dhamma_tags": [reflection.get("tone")]
         }

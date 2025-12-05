@@ -2,11 +2,13 @@
 Test for Collective Conscious Cloud Network (Phase 7)
 """
 import asyncio
+import pytest
 from app.core.collective.meta_coherence_protocol import MetaCoherenceProtocol
 from app.core.collective.collective_health_engine import CollectiveHealthEngine
 from app.core.collective.distributed_reflection_layer import DistributedReflectionLayer
 
-async def run_test():
+@pytest.mark.asyncio
+async def test_collective_network_flow():
     mcp = MetaCoherenceProtocol()
     che = CollectiveHealthEngine()
     drl = DistributedReflectionLayer()
