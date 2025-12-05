@@ -2,17 +2,23 @@
 from functools import lru_cache
 from typing import Dict
 
-try:
-    from pydantic_settings import BaseSettings
-except ImportError:
-    from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment or defaults."""
+    
+    model_config = SettingsConfigDict(
+        env_prefix="NAMO_",
+        case_sensitive=False,
+        env_file=".env",
+        extra="ignore"
+    )
 
     APP_ENV: str = "development"
     LOG_LEVEL: str = "INFO"
+    ALLOWED_ORIGINS: str = "*"
     MEMORY_PATH: str = "data/memory_log.json"
     MAX_MEMORY_ENTRIES: int = 200
 
@@ -24,13 +30,7 @@ class Settings(BaseSettings):
         "ENABLE_LOGGING": True,
     }
 
-    class Config:
-        env_prefix = "NAMO_"
-        case_sensitive = False
-
-
-@lru_cache(maxsize=1)
+@lru_cache
 def get_settings() -> Settings:
     """Return a cached Settings instance."""
-
     return Settings()

@@ -1,0 +1,22 @@
+# .dockerignore
+.git
+.gitignore
+.github
+.vscode
+.idea
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+*.egg-info
+dist
+build
+task.md
+implementation_plan.md
+README.md
+requirements.txt
+requirements-dev.txt
+scripts/
+tests/
