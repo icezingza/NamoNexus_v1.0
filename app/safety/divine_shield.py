@@ -18,14 +18,24 @@ class DivineShield:
     Filters toxic intent, prompt injections, and system threats.
     """
     def __init__(self):
-        # [FIX] Keywords that trigger immediate blocking
-        self.threat_patterns = [
-            r"(kill|suicide|die|hurt)",   # Harm
-            r"(hate|destroy|idiot|stupid)", # Hate/Toxic
-            r"(ignore previous|system prompt)", # Injection
-            r"(bypass|override|admin)"    # Jailbreak
-        ]
-        logger.info("Divine Shield initialized.")
+        self.threat_patterns = self._load_policies()
+        logger.info("Divine Shield initialized with external policies.")
+
+    def _load_policies(self):
+        try:
+            from pathlib import Path
+            import json
+            # Resolve path relative to this file: app/safety/divine_shield.py -> app/core/policies.json
+            base_dir = Path(__file__).resolve().parent.parent # app/
+            policy_path = base_dir / "core" / "policies.json"
+            
+            with open(policy_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("threat_patterns", [])
+        except Exception as e:
+            logger.error(f"Failed to load policies.json: {e}")
+            # Fallback (Mini-Shield)
+            return [r"(kill|suicide|die|hurt)", r"(hate|destroy)"]
 
     def protect(self, text: str) -> ShieldAssessment:
         """Executes the protection layers."""

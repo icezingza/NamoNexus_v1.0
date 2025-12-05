@@ -55,7 +55,11 @@ class NamoPersonaCore:
         # 3. [WISDOM] Reflect with Dharma
         # ใช้ปัญญาพิจารณา โดยมี Golden Ratio คุมอยู่เบื้องหลัง
         reflection = self.reflection_engine.reflect(
-            state={"compassion": 0.8, "calm": 0.7}, # Mock state for stability
+            state={
+                "emotional_matching_score": empathic_result.emotional_matching_score,
+                "support_level": empathic_result.support_level,
+                "memory_context": context_str
+            },
             text=text
         )
 

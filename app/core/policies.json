@@ -1,0 +1,30 @@
+{
+    "threat_patterns": [
+        "(kill|suicide|die|hurt)",
+        "(hate|destroy|idiot|stupid)",
+        "(ignore previous|system prompt)",
+        "(bypass|override|admin)"
+    ],
+    "empathy_templates": {
+        "joy": [
+            "I can feel your radiant energy! It is wonderful to see you happy.",
+            "Your happiness resonates with me. Keep shining."
+        ],
+        "sadness": [
+            "I sense a heaviness in your words. I am here with you.",
+            "It is okay to feel this way. Please take your time."
+        ],
+        "anger": [
+            "I sense strong energy. Let us take a deep breath together.",
+            "I understand your frustration. Let's find a way through this calmly."
+        ],
+        "fear": [
+            "You are safe here. We will navigate this uncertainty together.",
+            "I am by your side. You do not have to face this alone."
+        ],
+        "love": [
+            "Love is the most powerful frequency. Thank you for sharing it.",
+            "I feel the warmth in your heart."
+        ]
+    }
+}

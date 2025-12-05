@@ -4,9 +4,10 @@ import time
 from contextlib import asynccontextmanager
 from typing import Any, Dict
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, model_validator
+import uuid
 
 # [IMPORT] Core Systems
 from app.personality.namo_persona_core import NamoPersonaCore
@@ -115,6 +116,13 @@ def healthz():
     return _base_health_payload()
 
 
+def log_evolution_event(data: Dict[str, Any]):
+    """Simulates an async DB write for the Self-Evolution Loop."""
+    # In a real system, this would push to a Vector DB or Event Bus (Kafka/RabbitMQ)
+    # For now, we print to stdout so logs can be captured.
+    print(f"[EVOLUTION_LOG] {data}")
+
+
 @app.get("/readyz")
 def readyz():
     """Readiness probe to ensure core subsystems are initialized."""
@@ -127,7 +135,7 @@ def readyz():
     }
 
 @app.post("/interact")
-async def interact(query: UserQuery) -> Dict[str, Any]:
+async def interact(query: UserQuery, background_tasks: BackgroundTasks) -> Dict[str, Any]:
     """
     Main Interaction Endpoint
     Flow: User -> Shield -> Persona (Brain+Heart) -> Response
@@ -152,6 +160,21 @@ async def interact(query: UserQuery) -> Dict[str, Any]:
     
     process_time = round(time.time() - start_time, 3)
 
+    # 3. 🧬 [EVOLUTION] Async Logging
+    # บันทึกเหตุการณ์เพื่อการวิวัฒนาการ (Self-Evolution Loop)
+    evolution_data = {
+        "event_id": str(uuid.uuid4()),
+        "timestamp": time.time(),
+        "latency_ms": int(process_time * 1000),
+        "user_id": query.user_id,
+        "input_text": query.message,
+        "shield_passed": True,
+        "emotion_coherence": result.get("coherence", 0.0),
+        "reflection_tone": result.get("tone", "neutral"),
+        "memory_used": bool(result.get("memory_summary", ""))
+    }
+    background_tasks.add_task(log_evolution_event, evolution_data)
+
     return {
         "user": query.user_id,
         "response": result.get("reflection_text", ""),
@@ -167,5 +190,5 @@ async def interact(query: UserQuery) -> Dict[str, Any]:
 
 # Alias endpoint for compatibility
 @app.post("/reflect")
-async def reflect(query: UserQuery):
-    return await interact(query)
+async def reflect(query: UserQuery, background_tasks: BackgroundTasks):
+    return await interact(query, background_tasks)

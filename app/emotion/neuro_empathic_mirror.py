@@ -67,29 +67,19 @@ class NeuroEmpathicMirror:
             return None
 
     def _load_templates(self) -> Dict[str, List[str]]:
-        """Loads empathetic response templates based on emotional categories."""
-        return {
-            'joy': [
-                "I can feel your radiant energy! It is wonderful to see you happy.",
-                "Your happiness resonates with me. Keep shining.",
-            ],
-            'sadness': [
-                "I sense a heaviness in your words. I am here with you.",
-                "It is okay to feel this way. Please take your time.",
-            ],
-            'anger': [
-                "I sense strong energy. Let us take a deep breath together.",
-                "I understand your frustration. Let's find a way through this calmly.",
-            ],
-            'fear': [
-                "You are safe here. We will navigate this uncertainty together.",
-                "I am by your side. You do not have to face this alone.",
-            ],
-            'love': [
-                "Love is the most powerful frequency. Thank you for sharing it.",
-                "I feel the warmth in your heart."
-            ]
-        }
+        """Loads empathetic response templates from policies.json."""
+        try:
+            from pathlib import Path
+            import json
+            base_dir = Path(__file__).resolve().parent.parent # app/
+            policy_path = base_dir / "core" / "policies.json"
+            
+            with open(policy_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("empathy_templates", {})
+        except Exception as e:
+            logger.error(f"Failed to load policies.json: {e}")
+            return {"joy": ["I am happy for you."]}
 
     def analyze_emotion_depth(self, text: str) -> Dict[str, float]:
         """
