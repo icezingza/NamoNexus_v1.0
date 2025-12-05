@@ -1,12 +1,21 @@
 {
 	"servers": {
-		"context7": {
+		"io.github.upstash/context7": {
 			"command": "npx",
 			"args": [
 				"-y",
-				"@upstash/context7-mcp@latest"
+				"@upstash/context7-mcp@1.0.31"
 			],
-			"type": "stdio"
+			"type": "stdio",
+			"env": {
+				"CLIENT_IP_ENCRYPTION_KEY": "${env:CLIENT_IP_ENCRYPTION_KEY}",
+				"CONTEXT7_API_KEY": "${env:CONTEXT7_API_KEY}"
+			}
+		},
+		"my-mcp-server-880d070b": {
+			"type": "stdio",
+			"command": "run",
+			"args": []
 		}
 	},
 	"inputs": []
