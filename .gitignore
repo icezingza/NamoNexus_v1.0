@@ -1,16 +1,30 @@
-# Python artifacts
+# --- Python & System ---
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-
-# Virtual environments
-venv/
-.env/
-
-# OS-specific files
+*$py.class
 .DS_Store
-# Logs
+Thumbs.db
+
+# --- Environment & Secrets (do not leak) ---
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+env/
+
+# --- Logs & Databases ---
+*.log
 logs/
-# Data
 data/memory_log.json
+*.sqlite3
+*.db
+
+# --- IDE & Editors ---
+.vscode/
+.idea/
+
+# --- Testing ---
+.pytest_cache/
+test_output.txt
+health_report.txt
