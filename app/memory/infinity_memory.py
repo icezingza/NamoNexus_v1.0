@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List
 
+import os
 import numpy as np
 from app.core.config import get_settings
 
@@ -60,13 +61,27 @@ class InfinityMemorySystem:
             logger.warning("ChromaDB not found. Running in Simulation Mode.")
             return None
         try:
-            # สร้าง Persistent Client เพื่อเก็บข้อมูลลงไฟล์จริง
-            client = chromadb.PersistentClient(path=self.db_path)
-            collection = client.get_or_create_collection(
+            # Prefer remote Chroma if configured (stateless-friendly for Cloud Run)
+            if self.settings.CHROMA_HOST:
+                headers = {}
+                if self.settings.CHROMA_AUTH_TOKEN:
+                    headers["Authorization"] = f"Bearer {self.settings.CHROMA_AUTH_TOKEN}"
+                client = chromadb.HttpClient(
+                    host=self.settings.CHROMA_HOST,
+                    port=self.settings.CHROMA_PORT or 443,
+                    ssl=self.settings.CHROMA_SSL,
+                    headers=headers or None,
+                )
+                logger.info("Initialized remote Chroma client at %s", self.settings.CHROMA_HOST)
+            else:
+                # สร้าง Persistent Client เพื่อเก็บข้อมูลลงไฟล์จริง
+                client = chromadb.PersistentClient(path=self.db_path)
+                logger.info("Initialized local Chroma persistent client at %s", self.db_path)
+
+            return client.get_or_create_collection(
                 name="namo_infinity_memories",
                 metadata={"description": "Namo's infinite memory storage"}
             )
-            return collection
         except Exception as e:
             logger.error(f"Failed to initialize ChromaDB: {e}")
             return None
@@ -87,7 +102,7 @@ class InfinityMemorySystem:
         try:
             return SentenceTransformer("all-MiniLM-L6-v2")
         except Exception as exc:
-            print(f"⚠️ [Memory] Embedder Init Error: {exc}")
+            logger.warning("Memory embedder init error: %s", exc)
             return None
 
     def _embed_text(self, text: str) -> List[float]:

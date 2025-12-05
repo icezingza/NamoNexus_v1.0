@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from typing import Any, Dict
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, model_validator
 
 # [IMPORT] Core Systems
@@ -15,6 +16,7 @@ from app.core.config import get_settings
 # Setup Logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("NamoGateway")
+START_TIME = time.time()
 
 
 @asynccontextmanager
@@ -25,7 +27,7 @@ async def lifespan(app: FastAPI):
 
 # Initialize App
 app = FastAPI(
-    title="NamoNexus API", 
+    title="NamoNexus API",
     version="1.0",
     description="The Interface to Digital Consciousness",
     lifespan=lifespan,
@@ -36,6 +38,23 @@ app = FastAPI(
 persona = NamoPersonaCore()
 # Shield = เกราะป้องกัน (Chinabanchorn 8-Layers)
 shield = DivineShield()
+settings = get_settings()
+
+# CORS configuration (supports comma-separated env)
+allowed_origins_raw = settings.ALLOWED_ORIGINS or "*"
+allowed_origins = (
+    ["*"] if allowed_origins_raw.strip() == "*"
+    else [origin.strip() for origin in allowed_origins_raw.split(",") if origin.strip()]
+)
+
+if allowed_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allowed_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 class UserQuery(BaseModel):
     """Inbound chat payload with backward-compatible alias for message."""
@@ -62,13 +81,49 @@ def root():
         "message": "May wisdom and compassion guide you."
     }
 
-@app.get("/health")
-def health():
-    """System Health Check"""
+def _base_health_payload() -> Dict[str, Any]:
+    """Lightweight liveness payload shared by /health and /healthz."""
     return {
         "status": "healthy",
         "timestamp": time.time(),
-        "version": "Golden Genesis v1.5"
+        "uptime_seconds": round(time.time() - START_TIME, 3),
+        "version": "Golden Genesis v1.5",
+    }
+
+
+def _readiness_components() -> Dict[str, bool]:
+    """Inspect critical components without triggering heavy workloads."""
+    memory = getattr(persona, "infinity_memory", None)
+    return {
+        "persona": persona is not None,
+        "shield": shield is not None,
+        "memory_system": memory is not None,
+        "vector_store": bool(getattr(memory, "vector_db", None)) if memory else False,
+        "embedder": bool(getattr(memory, "embedder", None)) if memory else False,
+    }
+
+
+@app.get("/health")
+def health():
+    """Backward-compatible health endpoint."""
+    return _base_health_payload()
+
+
+@app.get("/healthz")
+def healthz():
+    """Liveness probe for orchestration."""
+    return _base_health_payload()
+
+
+@app.get("/readyz")
+def readyz():
+    """Readiness probe to ensure core subsystems are initialized."""
+    components = _readiness_components()
+    status = "ready" if all(components.values()) else "degraded"
+    return {
+        "status": status,
+        "components": components,
+        "timestamp": time.time(),
     }
 
 @app.post("/interact")

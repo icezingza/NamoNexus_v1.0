@@ -40,11 +40,72 @@ NAMO_FEATURE_FLAGS={"ENABLE_SAFETY":true,"ENABLE_MEMORY":true,"ENABLE_DHAMMA_REF
 
 ## API Endpoints
 - `GET /` – Basic status message to confirm the service is reachable.
-- `GET /health` – Reports system health information.
+- `GET /health` – Backward-compatible health payload.
+- `GET /healthz` – Liveness probe (lightweight).
+- `GET /readyz` – Readiness probe; surfaces component flags (persona, shield, memory, vector store, embedder).
 - `POST /reflect` – Accepts `{ "text": "..." }` and returns NaMo's reflection, tone, moral index, coherence, and safety metadata.
 
 ## Safety
 The `/reflect` endpoint applies a safety guard and risk evaluator. High-risk inputs are gated and may return a safe refusal message with the associated risk details instead of processing the request.
+
+## Health & Readiness Checks
+Run quick probes while the API is up:
+```bash
+curl -s http://127.0.0.1:8000/healthz | jq
+curl -s http://127.0.0.1:8000/readyz | jq
+```
+
+## Operational Checks
+- Smoke/system check: `python system_health_check.py`
+- Full tests: `pytest`
+
+## Dependency Pins & Security
+- Runtime pins: `chromadb==1.3.5`, `sentence-transformers==5.1.2`, `transformers==4.57.3` (aligned with the current environment for deterministic deploys).
+- CI runs `pip-audit` with temporary ignores for upstream-pinned deps (Werkzeug<3.1 via Dash; urllib3<2.4 via kubernetes). Remove the ignores once upstreams relax their upper bounds.
+
+## Cloud Run Deploy (Stateless)
+Container build (local):
+```bash
+docker build -t namonexus:cloudrun .
+docker run -p 8080:8080 -e PORT=8080 namonexus:cloudrun
+```
+
+Deploy via gcloud (example):
+```bash
+gcloud builds submit --tag gcr.io/PROJECT_ID/namonexus:latest .
+gcloud run deploy namonexus \
+  --image gcr.io/PROJECT_ID/namonexus:latest \
+  --region YOUR_REGION \
+  --port 8080 \
+  --allow-unauthenticated \
+  --cpu 1 --memory 1Gi --max-instances 3
+```
+
+Recommended env vars for Cloud Run:
+- `NAMO_LOG_LEVEL=INFO`
+- `NAMO_FEATURE_FLAGS={"ENABLE_SAFETY":true,"ENABLE_MEMORY":false,"ENABLE_DHAMMA_REFLECTION":true,"ENABLE_COHERENCE_SCORE":true,"ENABLE_LOGGING":true,"ENABLE_INFINITY_MEMORY":false}` (disables local persistence on ephemeral disk; point to external vector DB if needed)
+- `ALLOWED_ORIGINS=https://your-frontend.example.com` (comma-separated; use "*" only for dev)
+- `ANONYMIZED_TELEMETRY=false` (disable Chroma telemetry by default)
+- External Chroma (optional, for stateful vector memory): `CHROMA_HOST`, `CHROMA_PORT`, `CHROMA_SSL=true|false`, `CHROMA_AUTH_TOKEN` (if your service requires auth). Set `ENABLE_INFINITY_MEMORY=true` when pointing to a persistent/remote store.
+
+Probes (configure in Cloud Run):
+- Liveness: `GET /healthz`
+- Readiness: `GET /readyz`
+
+Notes on state:
+- Cloud Run provides only ephemeral filesystem. The default local Chroma path `data/chroma_db` will not persist across instances. Use an external vector store or keep `ENABLE_INFINITY_MEMORY=false` for stateless runs.
+- If you mount storage (e.g., Cloud Storage FUSE) or attach an external DB, update `NAMO_FEATURE_FLAGS` and connection settings accordingly.
+
+## Persistent Memory (External Vector Store)
+- Provision a managed vector DB (Chroma Cloud, Supabase/PGVector, or other HTTP Chroma service).
+- Set env vars: `CHROMA_HOST`, `CHROMA_PORT` (default 443), `CHROMA_SSL=true|false`, `CHROMA_AUTH_TOKEN` (if required).
+- Enable: `NAMO_FEATURE_FLAGS` with `"ENABLE_INFINITY_MEMORY": true` and `"ENABLE_MEMORY": true`.
+- Deploy to Cloud Run; `/readyz` will report `vector_store=true` when connected to the external store.
+- For stateless mode, keep `"ENABLE_INFINITY_MEMORY": false` and skip external Chroma.
+
+## Performance for Instant Empathy
+- Cloud Run recommended: `--cpu 2 --memory 4Gi --min-instances 1` to avoid cold starts and reduce transformer latency.
+- Keep `uvicorn` single-worker first; scale CPU before adding workers to avoid model duplication overhead, then tune `--workers`/`--limit-concurrency` if needed after measuring p95 latency.
 
 ## Testing
 Run the test suite with pytest:

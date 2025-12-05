@@ -1,5 +1,7 @@
 import hashlib
 import logging
+import os
+import psutil
 from importlib.util import find_spec
 from typing import Dict, List
 from dataclasses import dataclass
@@ -41,6 +43,15 @@ class NeuroEmpathicMirror:
         """
         if not HAS_TRANSFORMERS:
             logger.warning("Transformers library not found. Running in simulation mode.")
+            return None
+
+        if os.getenv("NAMO_EMOTION_SIM_MODE", "").lower() in {"1", "true", "yes"}:
+            logger.warning("Emotion model load skipped via NAMO_EMOTION_SIM_MODE; running in simulation mode.")
+            return None
+
+        # Avoid loading the model on constrained machines to prevent crashes.
+        if psutil.virtual_memory().available < 2_000_000_000:
+            logger.warning("Emotion model load skipped due to low available memory; running in simulation mode.")
             return None
         
         try:

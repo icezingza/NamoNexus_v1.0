@@ -26,10 +26,18 @@ class Settings(BaseSettings):
 
     model_config = ConfigDict(env_prefix="NAMO_", case_sensitive=False)
 
+    # Deployment & networking
     APP_ENV: str = "development"
     LOG_LEVEL: str = "INFO"
+    ALLOWED_ORIGINS: str = "*"  # comma-separated list or "*"
+
+    # Memory and storage
     MEMORY_PATH: str = "data/memory_log.json"
     MAX_MEMORY_ENTRIES: int = 200
+    CHROMA_HOST: str | None = None
+    CHROMA_PORT: int | None = None
+    CHROMA_SSL: bool = True
+    CHROMA_AUTH_TOKEN: str | None = None
 
     # [NEW] The Golden Ratio Constant
     PHI: float = 1.61803398875
