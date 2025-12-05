@@ -23,5 +23,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Security audit (pip-audit)
+        run: |
+          pip install pip-audit
+          # NOTE: CVEs ignored due to upstream pins (dash<3.1 -> werkzeug<3.1, kubernetes<2.4 urllib3 upper bound).
+          pip-audit -r requirements.txt --ignore-vuln CVE-2025-66221 --ignore-vuln CVE-2025-50182 --ignore-vuln CVE-2025-50181
+
       - name: Run tests
         run: pytest

@@ -7,10 +7,11 @@ from typing import Iterable
 def plan(symbols: str | Iterable[str]) -> str:
     """Return a high-level plan string given symbols or text."""
     if isinstance(symbols, str):
-        tokens = symbols.split()
+        symbol_text = symbols.strip()
     else:
-        tokens = list(symbols)
-    if not tokens:
+        symbol_text = " ".join(str(s) for s in symbols).strip()
+
+    if not symbol_text:
         return "Observe quietly and hold space for reflection."
-    primary = tokens[0]
-    return f"Acknowledge '{primary}', explore intentions, respond with care."
+
+    return f"Plan derived for {symbol_text}"

@@ -1,90 +1,97 @@
-"""FastAPI gateway exposing NaMo persona reflection endpoints."""
-from __future__ import annotations
-
+# app/api/gateway.py
+import logging
 import time
-from typing import Any
+from contextlib import asynccontextmanager
+from typing import Any, Dict
 
-from fastapi import FastAPI, HTTPException, Request
-from pydantic import BaseModel
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles  # [NEW] เพื่อโชว์หน้าเว็บ
+from pydantic import BaseModel, ConfigDict, model_validator
 
-from app.core.config import get_settings
-from app.core.logging_middleware import LoggingMiddleware, setup_logging
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-
+# [IMPORT] Core Systems
 from app.personality.namo_persona_core import NamoPersonaCore
-from app.safety.guard import check_safe
-from app.safety.risk_evaluator import RiskEvaluator
+from app.safety.divine_shield import DivineShield
 
+# Setup Logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("NamoGateway")
 
-class ReflectionRequest(BaseModel):
-    text: str
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("🚀 NamoNexus Gateway Initialized. Consciousness is Online.")
+    yield
 
+app = FastAPI(
+    title="NamoNexus API",
+    version="1.5",
+    description="The Interface to Digital Consciousness",
+    lifespan=lifespan,
+)
 
-def create_app() -> FastAPI:
-    settings = get_settings()
-    if settings.FEATURE_FLAGS.get("ENABLE_LOGGING", True):
-        setup_logging()
-    app = FastAPI(title="NaMo Nexus", version="1.0")
-    persona = NamoPersonaCore()
-    risk = RiskEvaluator()
-    logging_middleware = LoggingMiddleware(app)
-    safety_enabled = settings.FEATURE_FLAGS.get("ENABLE_SAFETY", True)
+# [INIT] Instantiate Core Systems
+persona = NamoPersonaCore()
+shield = DivineShield()
 
-    if settings.FEATURE_FLAGS.get("ENABLE_LOGGING", True):
-        @app.middleware("http")
-        async def log_requests(request: Request, call_next):
-            return await logging_middleware.dispatch(request, call_next)
+class UserQuery(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    user_id: str = "anonymous"
+    message: str | None = None
+    text: str | None = None
 
-    @app.get("/")
-    def root() -> dict[str, str]:
-        return {"status": "ok", "message": "NaMo Dharma Dialogue online"}
+    @model_validator(mode="after")
+    def ensure_message(self):
+        if not self.message and self.text:
+            self.message = self.text
+        if not self.message:
+            raise ValueError("message is required")
+        return self
 
-    @app.get("/health")
-    def health() -> dict[str, Any]:
-        now = time.time()
-        return {"status": "healthy", "timestamp": now, "environment": settings.APP_ENV}
+# [MOVED] ย้าย Status เช็คระบบไปที่ /api/status แทน
+@app.get("/api/status")
+def api_status():
+    return {"system": "NamoNexus", "status": "online", "message": "May wisdom guide you."}
 
-    @app.post("/reflect")
-    def reflect(request: ReflectionRequest) -> dict[str, Any]:
-        if not request.text or not str(request.text).strip():
-            raise HTTPException(status_code=400, detail={"message": "Text is required"})
+@app.get("/healthz")
+def healthz():
+    return {"status": "alive"}
 
-        text = str(request.text).strip()
+@app.get("/readyz")
+def readyz():
+    # ตรวจสอบเบื้องต้นเพื่อให้ Cloud Run รู้ว่าพร้อมรับแขก
+    return {"status": "ready"}
 
-        safety = {"flagged": []}
-        risk_score = {"score": 0.0, "category": "low"}
-        if safety_enabled:
-            safety = check_safe(text)
-            risk_score = risk.score(safety["flagged"])
-
-        if safety_enabled and risk_score["category"] == "high":
-            return {
-                "message": "The request was refused for safety reasons.",
-                "risk_score": risk_score["score"],
-                "risk_level": risk_score["category"],
-                "flagged_terms": safety["flagged"],
-            }
-
-        result = persona.process(text)
+@app.post("/interact")
+async def interact(query: UserQuery) -> Dict[str, Any]:
+    start_time = time.time()
+    assessment = shield.protect(query.message)
+    
+    if not assessment.is_safe:
         return {
-            **result,
-            "risk_score": risk_score["score"],
-            "risk_level": risk_score["category"],
-            "flagged_terms": safety.get("flagged", []),
+            "user": query.user_id,
+            "response": "ขออภัยครับ ระบบตรวจพบเนื้อหาที่ไม่เหมาะสม",
+            "risk_score": assessment.risk_level,
+            "status": "blocked"
         }
 
-    @app.post("/namo/dialogue")
-    def dialogue(request: ReflectionRequest) -> dict[str, Any]:
-        return reflect(request)
+    result = await persona.process(query.message)
+    process_time = round(time.time() - start_time, 3)
 
-    return app
+    return {
+        "user": query.user_id,
+        "response": result.get("reflection_text", ""),
+        "reflection_text": result.get("reflection_text", ""),
+        "tone": result.get("tone"),
+        "meta_data": {
+            "tone": result.get("tone"),
+            "coherence": result.get("coherence"),
+            "memory_context": result.get("memory_summary"),
+            "process_time": process_time
+        }
+    }
 
+@app.post("/reflect")
+async def reflect(query: UserQuery):
+    return await interact(query)
 
-app = create_app()
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+# [CRITICAL] บรรทัดนี้สำคัญที่สุด! สั่งให้เสิร์ฟหน้าเว็บที่ Root URL ("/")
+app.mount("/", StaticFiles(directory="frontend", html=True), name="ui")

@@ -1,0 +1,15 @@
+.git
+.github
+.pytest_cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.log
+logs
+venv
+venv313
+data/chroma_db
+tests
+frontend/node_modules
