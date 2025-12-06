@@ -8,11 +8,12 @@ client = TestClient(app)
 
 
 def test_health_endpoint_returns_ok():
-    response = client.get("/health")
+    # The application exposes /healthz and /api/status, but not /health
+    response = client.get("/healthz")
     assert response.status_code == 200
     payload = response.json()
     assert isinstance(payload.get("status"), str)
-    assert payload["status"]
+    assert payload["status"] == "alive"
 
 
 def test_reflect_endpoint_basic():
