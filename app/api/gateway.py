@@ -42,6 +42,10 @@ class UserQuery(BaseModel):
     def ensure_message(self):
         if not self.message and self.text:
             self.message = self.text
+
+        if self.message:
+            self.message = self.message.strip()
+
         if not self.message:
             raise ValueError("message is required")
         return self
