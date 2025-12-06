@@ -40,10 +40,23 @@ class UserQuery(BaseModel):
 
     @model_validator(mode="after")
     def ensure_message(self):
-        if not self.message and self.text:
-            self.message = self.text
-        if not self.message:
+        content = None
+
+        for candidate in (self.message, self.text):
+            if candidate is None:
+                continue
+
+            cleaned = candidate.strip()
+
+            if cleaned:
+                content = cleaned
+                break
+
+        if not content:
             raise ValueError("message is required")
+
+        self.message = content
+        self.text = content
         return self
 
 # [MOVED] ย้าย Status เช็คระบบไปที่ /api/status แทน
